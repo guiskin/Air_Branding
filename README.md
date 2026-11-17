@@ -1,6 +1,6 @@
 # Gestor de Projetos (piloto)
 
-Piloto da ferramenta própria de gestão de projetos, para substituir o ClickUp. Roda em paralelo ao ClickUp, com um grupo pequeno e dados de teste.
+Piloto da ferramenta própria de gestão de projetos, para substituir o Gestor atual. Roda em paralelo ao atual em fase de testes, com um grupo pequeno e dados de teste.
 
 ## O que o piloto faz
 
