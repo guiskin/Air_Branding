@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import * as D from './dados'
 import { Avatares, Barra, Etiqueta, SeletorStatus, relogio, textoEtapa, textoPrazo } from './pecas'
 import { IndicadoresProjeto, PaineisProjeto } from './paineis-projeto'
+import { CadastroEquipes, SeletorEquipe } from './EquipesProjeto'
 
 function BotaoTimer({ app, entrega }) {
   const rodando = app.m.timer && app.m.timer.entrega_id === entrega.id
@@ -143,20 +144,28 @@ function resumoProjeto(app, projeto) {
   const entregas = app.m.entregas.filter((e) => e.projeto_id === projeto.id)
   const feitas = entregas.filter((e) => e.status === 'concluido').length
   const atrasadas = entregas.filter((e) => e.atrasada).length
-  const pessoas = []
-  entregas.forEach((e) => e.responsaveis.forEach((p) => !pessoas.includes(p) && pessoas.push(p)))
+  const pessoas = [...new Set([
+    ...(app.m.equipePorProjeto[projeto.id]?.pessoas || []),
+    ...entregas.flatMap((e) => e.responsaveis),
+  ])]
   const minutos = app.dados.horas.filter((h) => h.projeto_id === projeto.id && h.fim).reduce((a, h) => a + h.minutos, 0)
   return { entregas, feitas, atrasadas, pessoas, minutos, pct: entregas.length ? (feitas / entregas.length) * 100 : 0 }
 }
 
 export function Projetos({ app }) {
-  const [novo, setNovo] = useState({ cliente_id: '', codigo: '', nome: '', linha: '', horas_vendidas: '' })
+  const projetoVazio = { cliente_id: '', codigo: '', nome: '', linha: '', horas_vendidas: '', equipe_id: '' }
+  const [novo, setNovo] = useState(projetoVazio)
+  const [criandoProjeto, setCriandoProjeto] = useState(false)
+  const equipes = app.dados.cadastroEquipes?.equipes || []
   const clienteEscolhido = novo.cliente_id || (app.dados.clientes[0] ? app.dados.clientes[0].id : '')
   const criarProjeto = async () => {
+    if (criandoProjeto) return
+    setCriandoProjeto(true)
     const feito = await app.agir(`Criar projeto ${novo.codigo}`, () =>
-      D.criarProjeto({ cliente_id: clienteEscolhido, codigo: novo.codigo.trim(), nome: novo.nome.trim(), linha: novo.linha.trim(), horas_vendidas: Number(novo.horas_vendidas) || 0 }),
+      D.criarProjeto({ cliente_id: clienteEscolhido, codigo: novo.codigo.trim(), nome: novo.nome.trim(), linha: novo.linha.trim(), horas_vendidas: Number(novo.horas_vendidas) || 0 }, novo.equipe_id),
     )
-    if (feito !== undefined) setNovo({ cliente_id: '', codigo: '', nome: '', linha: '', horas_vendidas: '' })
+    setCriandoProjeto(false)
+    if (feito !== undefined) setNovo(projetoVazio)
   }
   return (
     <div className="pilha larga">
@@ -236,9 +245,12 @@ export function Projetos({ app }) {
               <span>Horas vendidas</span>
               <input id="np-horas" className="entrada" type="number" min="0" value={novo.horas_vendidas} onChange={(e) => setNovo({ ...novo, horas_vendidas: e.target.value })} />
             </label>
+            {equipes.length > 0 && (
+              <SeletorEquipe id="np-equipe" equipes={equipes} valor={novo.equipe_id} aoMudar={(equipe_id) => setNovo({ ...novo, equipe_id })} desabilitado={criandoProjeto} />
+            )}
           </div>
           <div>
-            <button className="botao primario" disabled={!clienteEscolhido || !novo.codigo.trim() || !novo.nome.trim()} onClick={criarProjeto}>
+            <button className="botao primario" disabled={criandoProjeto || !clienteEscolhido || !novo.codigo.trim() || !novo.nome.trim()} onClick={criarProjeto}>
               Criar projeto
             </button>
           </div>
@@ -434,7 +446,7 @@ export function Projeto({ app, projetoId }) {
             </div>
           )}
         </div>
-        <PaineisProjeto app={app} entregas={r.entregas} horas={horasProjeto} />
+        <PaineisProjeto app={app} projetoId={projeto.id} entregas={r.entregas} horas={horasProjeto} />
       </div>
     </div>
   )
@@ -471,6 +483,7 @@ export function Equipe({ app }) {
         <h1>Equipe e piloto</h1>
         <p className="suave">Quem já entrou, quem está convidado e os relatos enviados pelos testadores.</p>
       </div>
+      {app.gestor && <CadastroEquipes app={app} />}
       <section className="cartao">
         <h2>Pessoas e horas do mês</h2>
         {app.dados.pessoas.map((p) => {

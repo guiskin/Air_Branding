@@ -1,5 +1,6 @@
 import { fmtData, fmtMin, hoje } from './dados'
 import { Avatar, Barra } from './pecas'
+import { AtribuirEquipe } from './EquipesProjeto'
 
 export function IndicadoresProjeto({ resumo, vendidas, porTipo }) {
   return (
@@ -101,8 +102,9 @@ function LinhaDoTempo({ app, entregas }) {
   )
 }
 
-function EquipeDoProjeto({ app, entregas, horas }) {
-  const envolvidos = new Set()
+function EquipeDoProjeto({ app, projetoId, entregas, horas }) {
+  const atribuicao = app.m.equipePorProjeto[projetoId]
+  const envolvidos = new Set(atribuicao?.pessoas.map(({ id }) => id))
   for (const entrega of entregas) {
     for (const pessoa of entrega.responsaveis) envolvidos.add(pessoa.id)
     for (const etapa of entrega.etapas) envolvidos.add(etapa.pessoa_id)
@@ -115,7 +117,9 @@ function EquipeDoProjeto({ app, entregas, horas }) {
   return (
     <section className="cartao pilha curta" aria-labelledby="titulo-equipe-projeto">
       <h2 id="titulo-equipe-projeto" className="titulo-grupo">Equipe do projeto</h2>
-      {pessoas.length === 0 && <p className="pequeno suave">Ainda não há pessoas atribuídas às entregas.</p>}
+      {atribuicao?.equipe && <p className="pequeno forte">{atribuicao.equipe.nome}</p>}
+      <AtribuirEquipe key={projetoId} app={app} projetoId={projetoId} equipeAtual={atribuicao?.equipe} />
+      {pessoas.length === 0 && <p className="pequeno suave">Nenhuma pessoa atribuída ao projeto.</p>}
       {pessoas.length > 0 && (
         <ul className="itens-painel equipe-projeto">
           {pessoas.map((pessoa) => (
@@ -134,7 +138,7 @@ function EquipeDoProjeto({ app, entregas, horas }) {
   )
 }
 
-export function PaineisProjeto({ app, entregas, horas }) {
+export function PaineisProjeto({ app, projetoId, entregas, horas }) {
   return (
     <aside className="pilha paineis-projeto" aria-label="Acompanhamento do projeto">
       <LinhaDoTempo app={app} entregas={entregas} />
@@ -146,7 +150,7 @@ export function PaineisProjeto({ app, entregas, horas }) {
           <li>Ao avançar uma etapa, o sistema registra um comentário.</li>
         </ul>
       </section>
-      <EquipeDoProjeto app={app} entregas={entregas} horas={horas} />
+      <EquipeDoProjeto app={app} projetoId={projetoId} entregas={entregas} horas={horas} />
     </aside>
   )
 }

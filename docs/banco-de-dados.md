@@ -10,6 +10,8 @@ Os scripts numerados estão em `supabase/`. O registro de aplicação está em `
 | `pessoas` | usuários (id = `auth.users.id`) | Criada pelo gatilho. O `03` adiciona `ativo`. O `04` adiciona `foto_caminho` opcional. |
 | `clientes` | nome único | |
 | `projetos` | cliente, `codigo` único, nome, linha, `horas_vendidas`, `ativo` | `on delete restrict` no cliente. |
+| `equipes`, `equipe_membros` | cadastro de equipes e pessoas | O nome é único sem distinção entre maiúsculas e minúsculas. |
+| `projeto_equipes`, `projeto_equipe_membros` | equipe escolhida e integrantes copiados para o projeto | A troca da equipe atualiza a cópia em uma única transação. |
 | `entregas` | projeto, título, briefing, `link_drive`, status, início, prazo, prioridade, `horas_estimadas` | `check` nos oito status e em prioridade (baixa, normal, alta). |
 | `entrega_responsaveis` | entrega x pessoa | Chave composta. |
 | `etapas` | entrega, `ordem`, nome, pessoa, `concluida`, `concluida_em` | |
@@ -53,6 +55,13 @@ Antes de aplicar o `04` no ambiente de teste, confirme que o `03` foi aplicado, 
 ## Realtime
 
 Publicação `supabase_realtime` inclui entregas, responsáveis, etapas, horas, comentários, projetos, clientes e pessoas.
+
+## Equipes reutilizáveis (migração 05)
+
+- As quatro tabelas usam RLS. Somente membros ativos podem consultá-las. A migração adiciona as quatro à publicação `supabase_realtime`.
+- `salvar_equipe` valida o nome e uma lista de pessoas ativas. `aplicar_equipe_projeto` copia os membros ativos da equipe escolhida para um projeto ativo. Um identificador de equipe nulo limpa a atribuição do projeto.
+- `criar_projeto_com_equipe` cria o projeto e aplica a equipe na mesma transação. As três funções exigem coordenação ou administração. As tabelas novas só permitem escrita por essas funções.
+- Atribuições já feitas preservam os membros copiados quando a equipe cadastrada muda. A reaplicação substitui a cópia do projeto escolhido. Responsáveis por entregas e etapas seguem gravados nas tabelas atuais.
 
 ## Segurança do piloto
 

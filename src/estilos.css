@@ -289,6 +289,7 @@ h2.titulo-grupo { font-size: calc(20px - var(--ajuste-fonte)); }
 .status-seletor.neutro { background: var(--cartao); color: var(--tinta); }
 
 .avatares { display: flex; gap: 4px; }
+.projeto-cartao .avatares { min-width: 0; flex-wrap: wrap; }
 .avatar {
   display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px;
   border-radius: 50%; color: var(--branco); font-size: calc(12px - var(--ajuste-fonte)); font-weight: 700; flex: 0 0 auto;
@@ -497,6 +498,8 @@ details summary { cursor: pointer; min-height: 44px; display: flex; align-items:
 .equipe-projeto li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 6px 0; }
 .equipe-projeto li + li { border-top: 1px solid var(--linha); }
 .equipe-projeto strong { overflow-wrap: anywhere; }
+.membros-equipe { min-width: 0; padding: 8px 12px; border: 1px solid var(--borda); border-radius: var(--raio-campo); }
+.membros-equipe label { min-height: 32px; cursor: pointer; }
 
 @container (max-width: 390px) {
   .linha-projeto { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }

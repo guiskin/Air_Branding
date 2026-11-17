@@ -57,8 +57,20 @@ async function assinarFotos(pessoas) {
   }
 }
 
+async function carregarEquipes() {
+  const [equipes, atribuicoes] = await Promise.all([
+    supabase.from('equipes').select('id,nome,equipe_membros(pessoa_id)').order('nome'),
+    supabase.from('projeto_equipes').select('projeto_id,equipe_id,projeto_equipe_membros(pessoa_id)'),
+  ])
+  const erros = [equipes.error, atribuicoes.error].filter(Boolean)
+  const falha = erros.find(({ code }) => !['42P01', 'PGRST205'].includes(code))
+  if (falha) throw new Error(falha.message)
+  if (erros.length) return null
+  return { equipes: equipes.data, atribuicoes: atribuicoes.data }
+}
+
 export async function carregar() {
-  const [pessoas, clientes, projetos, entregas, responsaveis, etapas, horas, comentarios] = await Promise.all([
+  const [pessoas, clientes, projetos, entregas, responsaveis, etapas, horas, comentarios, cadastroEquipes] = await Promise.all([
     ok(supabase.from('pessoas').select('*').order('nome')),
     ok(supabase.from('clientes').select('*').order('nome')),
     ok(supabase.from('projetos').select('*').order('codigo')),
@@ -67,8 +79,9 @@ export async function carregar() {
     ok(supabase.from('etapas').select('*').order('ordem')),
     ok(supabase.from('horas').select('*').order('inicio')),
     ok(supabase.from('comentarios').select('*').order('criado_em')),
+    carregarEquipes(),
   ])
-  return { pessoas: await assinarFotos(pessoas), clientes, projetos, entregas, responsaveis, etapas, horas, comentarios }
+  return { pessoas: await assinarFotos(pessoas), clientes, projetos, entregas, responsaveis, etapas, horas, comentarios, cadastroEquipes }
 }
 
 export async function alterarMeuNome(nome) {
@@ -167,6 +180,14 @@ export function montar(dados, euId) {
   const pessoaPorId = Object.fromEntries(dados.pessoas.map((p) => [p.id, p]))
   const clientePorId = Object.fromEntries(dados.clientes.map((c) => [c.id, c]))
   const projetoPorId = Object.fromEntries(dados.projetos.map((p) => [p.id, p]))
+  const equipePorId = Object.fromEntries((dados.cadastroEquipes?.equipes || []).map((equipe) => [equipe.id, equipe]))
+  const equipePorProjeto = Object.fromEntries((dados.cadastroEquipes?.atribuicoes || []).map((atribuicao) => [
+    atribuicao.projeto_id,
+    {
+      equipe: equipePorId[atribuicao.equipe_id],
+      pessoas: atribuicao.projeto_equipe_membros.map(({ pessoa_id }) => pessoaPorId[pessoa_id]).filter(Boolean),
+    },
+  ]))
   const dia = hoje()
   const entregas = dados.entregas.map((e) => {
     const etapas = dados.etapas.filter((x) => x.entrega_id === e.id).sort((a, b) => a.ordem - b.ordem)
@@ -191,12 +212,28 @@ export function montar(dados, euId) {
     }
   })
   const timer = dados.horas.find((h) => h.pessoa_id === euId && !h.fim) || null
-  return { pessoaPorId, clientePorId, projetoPorId, entregas, timer }
+  return { pessoaPorId, clientePorId, projetoPorId, equipePorProjeto, entregas, timer }
 }
 
 export const criarCliente = (nome) => ok(supabase.from('clientes').insert({ nome }))
 
-export const criarProjeto = (p) => ok(supabase.from('projetos').insert(p))
+export function criarProjeto(projeto, equipeId) {
+  if (!equipeId) return ok(supabase.from('projetos').insert(projeto))
+  return ok(supabase.rpc('criar_projeto_com_equipe', {
+    cliente: projeto.cliente_id,
+    codigo: projeto.codigo,
+    nome: projeto.nome,
+    linha: projeto.linha,
+    horas: projeto.horas_vendidas,
+    equipe: equipeId,
+  }))
+}
+
+export const salvarEquipe = (equipeId, nome, membros) =>
+  ok(supabase.rpc('salvar_equipe', { equipe: equipeId, novo_nome: nome.trim(), membros }))
+
+export const aplicarEquipe = (projetoId, equipeId) =>
+  ok(supabase.rpc('aplicar_equipe_projeto', { projeto: projetoId, equipe: equipeId || null }))
 
 export async function criarEntrega({ projeto_id, titulo, briefing, link_drive, prazo, horas_estimadas, fluxo, quem, euId }) {
   const [entrega] = await ok(
