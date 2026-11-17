@@ -94,7 +94,7 @@ export default function Painel({ app, entrega }) {
           })}
           {e.etapaAtual && (
             <div>
-              <button className="botao primario" onClick={() => app.agir(`Concluir etapa ${e.etapaAtual.nome} em "${e.titulo}"`, () => D.avancarEtapa(e, app.m.pessoaPorId))}>
+              <button className="botao primario" onClick={() => app.agir(`Concluir etapa ${e.etapaAtual.nome} em "${e.titulo}"`, () => D.avancarEtapa(e))}>
                 {proxima ? `Concluir ${e.etapaAtual.nome} e passar para ${D.primeiroNome(app.m.pessoaPorId[proxima.pessoa_id])}` : 'Concluir a última etapa'}
               </button>
             </div>

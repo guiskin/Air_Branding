@@ -235,20 +235,35 @@ export function montar(dados, euId) {
 
 export const criarCliente = (nome) => ok(supabase.from('clientes').insert({ nome }))
 
-export function criarProjeto(projeto, equipeId) {
-  if (!equipeId) return ok(supabase.from('projetos').insert(projeto))
-  return ok(supabase.rpc('criar_projeto_com_equipe', {
-    cliente: projeto.cliente_id,
-    codigo: projeto.codigo,
-    nome: projeto.nome,
-    linha: projeto.linha,
-    horas: projeto.horas_vendidas,
-    equipe: equipeId,
-  }))
+export async function criarProjeto(projeto, equipeId) {
+  const { data, error } = equipeId
+    ? await supabase.rpc('criar_projeto_com_equipe', {
+        cliente: projeto.cliente_id,
+        codigo: projeto.codigo,
+        nome: projeto.nome,
+        linha: projeto.linha,
+        horas: projeto.horas_vendidas,
+        equipe: equipeId,
+      })
+    : await supabase.from('projetos').insert(projeto)
+  if (error) {
+    if (error.code === '23505') throw new Error('Já existe um projeto com esse código.')
+    throw new Error(error.message)
+  }
+  return data
+}
+
+export async function salvarPastaDrive(projetoId, link) {
+  const { error } = await supabase.from('projetos').update({ pasta_drive: link.trim() }).eq('id', projetoId)
+  if (!error) return
+  if (error.code === '23514') throw new Error('Cole um link de pasta do Google Drive (começa com https://drive.google.com/).')
+  throw new Error(error.message)
 }
 
 export const salvarEquipe = (equipeId, nome, membros) =>
   ok(supabase.rpc('salvar_equipe', { equipe: equipeId, novo_nome: nome.trim(), membros }))
+
+export const excluirEquipe = (equipeId) => ok(supabase.rpc('excluir_equipe', { equipe: equipeId }))
 
 export const aplicarEquipe = (projetoId, equipeId) =>
   ok(supabase.rpc('aplicar_equipe_projeto', { projeto: projetoId, equipe: equipeId || null }))
@@ -277,21 +292,7 @@ export const alternarResponsavel = (entregaId, pessoaId, incluir) =>
 
 export const definirPessoaEtapa = (etapaId, pessoaId) => ok(supabase.from('etapas').update({ pessoa_id: pessoaId || null }).eq('id', etapaId))
 
-export async function avancarEtapa(entrega, pessoaPorId) {
-  const atual = entrega.etapaAtual
-  if (!atual) return
-  const proxima = entrega.etapas.find((x) => x.ordem > atual.ordem && !x.concluida) || null
-  await ok(supabase.from('etapas').update({ concluida: true, concluida_em: new Date().toISOString() }).eq('id', atual.id))
-  if (proxima && proxima.pessoa_id && !entrega.responsaveis.some((p) => p.id === proxima.pessoa_id)) {
-    await ok(supabase.from('entrega_responsaveis').insert({ entrega_id: entrega.id, pessoa_id: proxima.pessoa_id }))
-  }
-  const status = proxima ? (proxima.nome === 'Aprovação do cliente' ? 'aprovacao' : 'andamento') : 'concluido'
-  await ok(supabase.from('entregas').update({ status }).eq('id', entrega.id))
-  const texto = proxima
-    ? `Etapa ${atual.nome} concluída. Agora é com ${primeiroNome(pessoaPorId[proxima.pessoa_id])} (${proxima.nome}).`
-    : 'Todas as etapas concluídas.'
-  await ok(supabase.from('comentarios').insert({ entrega_id: entrega.id, texto }))
-}
+export const avancarEtapa = (entrega) => ok(supabase.rpc('avancar_etapa', { entrega: entrega.id }))
 
 export async function pararTimer(timer) {
   if (!timer) return

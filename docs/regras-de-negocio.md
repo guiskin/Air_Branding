@@ -15,7 +15,7 @@ Oito, nesta ordem: Backlog, Aguardando material, Planejado, Em andamento, Em rev
   - Etapa única (sem etapas).
 - A pessoa escolhida ao criar vira responsável e dona da primeira etapa.
 - **Etapa atual** = primeira etapa não concluída. A entrega está "com você" se você é dono da etapa atual (ou, sem etapas, é responsável).
-- **Avançar etapa** (`avancarEtapa`): conclui a atual; se a próxima tem dono que ainda não é responsável, adiciona como responsável; muda o status para Em aprovação quando a próxima se chama "Aprovação do cliente", Em andamento para as demais, Concluído se não há próxima; registra comentário automático.
+- **Avançar etapa** (`avancarEtapa`): conclui a atual; se a próxima tem dono que ainda não é responsável, adiciona como responsável; muda o status para Em aprovação quando a próxima se chama "Aprovação do cliente", Em andamento para as demais, Concluído se não há próxima; registra comentário automático. Tudo isso acontece em uma única transação no banco (função `avancar_etapa`).
 - **Atrasada**: tem prazo anterior a hoje e status diferente de Concluído.
 
 ## Horas
@@ -45,6 +45,9 @@ Funil comercial, carga da equipe, Gantt interativo, relatório de projeto, impor
 - A linha do tempo mostra entregas abertas com prazo. Com início vazio, usa o dia local da criação. Se o prazo vier antes do início, mostra uma barra de um dia no prazo. As entregas abertas sem prazo aparecem no total separado.
 - A seção **Equipe do projeto** reúne os membros da equipe aplicada e os responsáveis pelas entregas e por suas etapas. Cada pessoa vê as horas encerradas que o banco permite consultar no projeto, inclusive horas sem entrega.
 - Ao aplicar uma equipe, o projeto recebe uma cópia dos membros ativos naquele momento. Mudanças na composição do cadastro passam a valer para o projeto após uma reaplicação explícita. É possível trocar ou remover a equipe de um projeto preservando os responsáveis das entregas.
+- Coordenação e administração podem excluir uma equipe cadastrada, desde que nenhum projeto a use. Na criação de projeto, um código repetido mostra "Já existe um projeto com esse código.".
+- Cada projeto pode ter o link da pasta do Drive (editado por coordenação e administração), exibido como "Pasta do Drive" na tela do projeto.
+- "Horas do mês" em Equipe e piloto usa o mês do fuso local.
 - O painel de regras descreve o comportamento de avançar etapas. A entrega aberta fecha ao trocar de tela ou de projeto.
 
 ## Painéis

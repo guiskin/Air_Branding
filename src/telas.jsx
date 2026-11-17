@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import * as D from './dados'
-import { Avatares, Barra, Etiqueta, SeletorStatus, relogio, textoEtapa, textoPrazo } from './pecas'
+import { Avatares, Barra, CampoSalvo, Etiqueta, SeletorStatus, relogio, textoEtapa, textoPrazo } from './pecas'
 import { IndicadoresProjeto, PaineisProjeto } from './paineis-projeto'
 import { CadastroEquipes, SeletorEquipe } from './EquipesProjeto'
 
@@ -150,6 +150,33 @@ function resumoProjeto(app, projeto) {
   ])]
   const minutos = app.dados.horas.filter((h) => h.projeto_id === projeto.id && h.fim).reduce((a, h) => a + h.minutos, 0)
   return { entregas, feitas, atrasadas, pessoas, minutos, pct: entregas.length ? (feitas / entregas.length) * 100 : 0 }
+}
+
+function PastaDrive({ app, projeto }) {
+  const link = projeto.pasta_drive || ''
+  const temLink = /^https:\/\//.test(link)
+  if (!temLink && !app.gestor) return null
+  return (
+    <section className="cartao pilha curta" aria-labelledby="titulo-drive">
+      <h2 id="titulo-drive">Pasta do Drive</h2>
+      {temLink && (
+        <a href={link} target="_blank" rel="noopener noreferrer">
+          Abrir a pasta do projeto no Drive
+        </a>
+      )}
+      {app.gestor && (
+        <label className="campo" htmlFor="pasta-drive">
+          <span>Link da pasta</span>
+          <CampoSalvo
+            id="pasta-drive"
+            valor={link}
+            placeholder="Cole o link da pasta do Google Drive"
+            aoSalvar={(v) => app.agir('Salvar pasta do Drive', () => D.salvarPastaDrive(projeto.id, v))}
+          />
+        </label>
+      )}
+    </section>
+  )
 }
 
 export function Projetos({ app }) {
@@ -388,6 +415,7 @@ export function Projeto({ app, projetoId }) {
           </div>
         </div>
         <IndicadoresProjeto resumo={r} vendidas={Number(projeto.horas_vendidas)} porTipo={porTipo} />
+        <PastaDrive app={app} projeto={projeto} />
       </div>
       {criando && <NovaEntrega app={app} projeto={projeto} aoFechar={() => setCriando(false)} />}
       <div className="projeto-corpo">
@@ -468,7 +496,7 @@ export function Equipe({ app }) {
   useEffect(() => {
     buscar()
   }, [])
-  const mes = new Date().toISOString().slice(0, 7)
+  const mes = D.hoje().slice(0, 7)
   const convidar = async () => {
     const feito = await app.agir(`Convidar ${novo.email}`, () => D.convidar(novo))
     if (feito !== undefined) {
@@ -487,7 +515,7 @@ export function Equipe({ app }) {
       <section className="cartao">
         <h2>Pessoas e horas do mês</h2>
         {app.dados.pessoas.map((p) => {
-          const minutos = app.dados.horas.filter((h) => h.pessoa_id === p.id && h.fim && h.inicio.slice(0, 7) === mes).reduce((a, h) => a + h.minutos, 0)
+          const minutos = app.dados.horas.filter((h) => h.pessoa_id === p.id && h.fim && D.dataLocal(new Date(h.inicio)).slice(0, 7) === mes).reduce((a, h) => a + h.minutos, 0)
           const abertas = app.m.entregas.filter((e) => e.status !== 'concluido' && e.responsaveis.some((x) => x.id === p.id)).length
           return (
             <div key={p.id} className="linha">

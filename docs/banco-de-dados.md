@@ -63,6 +63,12 @@ Publicação `supabase_realtime` inclui entregas, responsáveis, etapas, horas, 
 - `criar_projeto_com_equipe` cria o projeto e aplica a equipe na mesma transação. As três funções exigem coordenação ou administração. As tabelas novas só permitem escrita por essas funções.
 - Atribuições já feitas preservam os membros copiados quando a equipe cadastrada muda. A reaplicação substitui a cópia do projeto escolhido. Responsáveis por entregas e etapas seguem gravados nas tabelas atuais.
 
+## Exclusão de equipe, avanço de etapa e pasta do Drive (migrações 06 a 08)
+
+- **06:** `excluir_equipe(equipe)`: só coordenação e administração; recusa se a equipe estiver aplicada a algum projeto (é preciso removê-la antes) e apaga a equipe com a lista de integrantes. Não há `delete` direto nas tabelas.
+- **07:** `avancar_etapa(entrega)`: conclui a etapa atual, inclui o dono da próxima como responsável, atualiza o status e grava o comentário automático em uma única transação, travando a entrega. Roda com os direitos de quem chama (`security invoker`): vale a mesma RLS de antes, qualquer membro ativo. Um segundo clique concorrente avança a etapa seguinte, pois a função lê o estado do banco. A regra "próxima etapa chamada Aprovação do cliente vira status Em aprovação" continua fixa no texto do nome da etapa.
+- **08:** `projetos.pasta_drive` (texto, vazio por padrão): link da pasta do Google Drive, só `https://drive.google.com/` ou `https://docs.google.com/`. Edita quem edita projetos (coordenação e administração); todos os membros ativos leem. Sem login Google.
+
 ## Segurança do piloto
 
 Detalhes e plano na tarefa `tasks/001-seguranca-perfis-e-convites.md`.

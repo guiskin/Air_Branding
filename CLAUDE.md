@@ -5,7 +5,8 @@ Piloto da ferramenta própria de gestão de projetos da Air Branding. Vite + Rea
 ## Comandos
 
 - `npm run dev`: servidor local (precisa de `.env`, copiado de `.env.example`).
-- `npm run build`: build de produção (saída em `dist`). É a verificação mínima; não há testes nem lint.
+- `npm run build`: build de produção (saída em `dist`). É a verificação mínima.
+- `npm test`: testes unitários (Vitest) das funções puras de `src/dados.js`. `npm run lint`: ESLint (avisos não bloqueiam; erros sim).
 
 ## Estrutura
 
