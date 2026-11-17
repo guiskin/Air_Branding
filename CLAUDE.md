@@ -12,7 +12,7 @@ Piloto da ferramenta própria de gestão de projetos da Air Branding. Vite + Rea
 - `src/App.jsx`, `src/telas.jsx`, `src/pecas.jsx`, `src/Painel.jsx`: interface. `src/estilos.css`: todo o CSS.
 - `src/dados.js`, `src/supabase.js`: acesso ao banco e regras de negócio.
 - `supabase/`: scripts SQL numerados. `docs/`: documentação. `tasks/`: backlog e tarefas.
-- `.claude/rules/` (regras por área, carregam sozinhas), `.claude/agents/` (`revisor`, `analista-banco`), `.claude/skills/` (`planejar-tarefa`, `nova-migracao`, `fechar-entrega`).
+- `.claude/rules/` (regras por área, carregam sozinhas), `.claude/agents/` (`revisor`, `analista-banco`, `qa`), `.claude/skills/` (`planejar-tarefa`, `nova-migracao`, `fechar-entrega`).
 
 ## Fluxo de trabalho
 

@@ -11,6 +11,13 @@ Uma entrada por decisão: data, decisão, motivo. Mais recente no topo.
 - Após comparar os exemplos, o usuário escolheu o modal central para os detalhes da entrega. No celular, o modal abre em tela inteira.
 - Plugin `frontend-design` (Anthropic) ativado no projeto para orientar as próximas fases.
 
+## 2026-11-17: agente de QA e credenciais de teste
+
+- Criado o agente `qa` e o `docs/roteiro-de-qa.md` (roteiro por perfil). A auditoria tinha adiado o agente de QA até existirem testes; o usuário pediu, e o roteiro manual já dá o que ele executar.
+- O agente nunca digita senhas: quem faz o login no navegador do Claude é o usuário, um perfil por vez. Motivo: o endereço publicado fala com o banco real, e senhas não devem ser digitadas nem registradas por Claude.
+- Senhas passadas em chat ficam na transcrição: recomendado trocá-las e, para testes repetidos, usar contas de teste dedicadas no projeto de teste.
+- Tudo o que o QA cria leva o prefixo `[QA]`; a limpeza é por SQL, com aprovação.
+
 ## 2026-11-17: quem executa SQL
 
 - Decisão do usuário: depois de testar no projeto de teste (`airbranding-teste`), Claude pode aplicar sozinho, pelo conector do Supabase, scripts numerados no banco real, com revisão, estado "antes" conferido e reversão no cabeçalho.
