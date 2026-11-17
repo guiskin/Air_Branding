@@ -69,7 +69,7 @@ Oito cores (`--avatar-0` a `--avatar-7`), iguais nos dois temas, texto sempre br
 ## Tipografia
 
 - Títulos: Barlow Condensed 800, caixa alta, `h1` 40px (32px no celular), `h2` 26px, `h2.titulo-grupo` 20px.
-- Texto: Poppins 400/500/600/700, 15px base, `.pequeno` 13px, rótulos de campo 13px em negrito.
+- Texto: Poppins 400/500/600/700, 14px base, `.pequeno` e rótulos de campo 12px. O token `--ajuste-fonte` reduz os tamanhos em 1px.
 - Números de horas e relógio: `font-variant-numeric: tabular-nums` no timer.
 
 ## Espaçamento e forma

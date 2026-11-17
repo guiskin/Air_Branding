@@ -2,9 +2,15 @@ import { useEffect, useState } from 'react'
 import { STATUS, statusPorId, corPessoa, iniciais, fmtData, primeiroNome } from './dados'
 
 export function Avatar({ pessoa }) {
+  const [fotoIndisponivel, setFotoIndisponivel] = useState(null)
+  const mostrarFoto = pessoa.foto_url && pessoa.foto_url !== fotoIndisponivel
   return (
-    <span className={`avatar cor-${corPessoa(pessoa.id)}`} title={pessoa.nome}>
-      {iniciais(pessoa.nome)}
+    <span className={`avatar cor-${corPessoa(pessoa.id)}`} title={pessoa.nome} role="img" aria-label={pessoa.nome}>
+      {mostrarFoto ? (
+        <img src={pessoa.foto_url} alt="" onError={() => setFotoIndisponivel(pessoa.foto_url)} />
+      ) : (
+        iniciais(pessoa.nome)
+      )}
     </span>
   )
 }

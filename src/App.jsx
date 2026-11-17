@@ -4,6 +4,7 @@ import * as D from './dados'
 import { relogio } from './pecas'
 import { MeuDia, Projetos, Projeto, Equipe } from './telas'
 import Painel from './Painel'
+import Configuracoes from './Configuracoes'
 import { Menu, BarraTopo } from './menu'
 import { lerTema, aplicarTema } from './tema'
 
@@ -217,6 +218,51 @@ function Relato({ contexto, aoFechar, aoEnviar }) {
   )
 }
 
+function CadastroCliente({ app, aoFechar }) {
+  const dialogo = useRef(null)
+  const [nome, setNome] = useState('')
+  const [salvando, setSalvando] = useState(false)
+  const [erro, setErro] = useState('')
+
+  useEffect(() => {
+    const janela = dialogo.current
+    janela.showModal()
+    return () => janela.close()
+  }, [])
+
+  async function cadastrar(evento) {
+    evento.preventDefault()
+    if (!nome.trim() || salvando) return
+    setSalvando(true)
+    setErro('')
+    const resultado = await app.agir('Cadastrar cliente', () => D.criarCliente(nome.trim()))
+    setSalvando(false)
+    if (resultado !== undefined) {
+      aoFechar()
+      app.avisar('Cliente cadastrado.')
+    } else {
+      setErro('Não foi possível cadastrar o cliente. Confira o nome e tente novamente.')
+    }
+  }
+
+  return (
+    <dialog ref={dialogo} className="janela-cliente" aria-labelledby="titulo-novo-cliente" onCancel={(evento) => { evento.preventDefault(); if (!salvando) aoFechar() }}>
+      <form className="pilha media" onSubmit={cadastrar}>
+        <h2 id="titulo-novo-cliente">Cadastrar cliente</h2>
+        <label className="campo" htmlFor="novo-cliente">
+          <span>Nome do cliente</span>
+          <input id="novo-cliente" className="entrada" autoFocus required disabled={salvando} value={nome} onChange={(evento) => setNome(evento.target.value)} />
+        </label>
+        {erro && <p className="perigo" role="alert">{erro}</p>}
+        <div className="fila">
+          <button className="botao primario" disabled={!nome.trim() || salvando}>{salvando ? 'Cadastrando…' : 'Cadastrar'}</button>
+          <button type="button" className="botao" disabled={salvando} onClick={aoFechar}>Cancelar</button>
+        </div>
+      </form>
+    </dialog>
+  )
+}
+
 function Sistema({ sessao, tema, setTema }) {
   const [dados, setDados] = useState(null)
   const [menuAberto, setMenuAberto] = useState(false)
@@ -225,6 +271,9 @@ function Sistema({ sessao, tema, setTema }) {
   const [tela, setTela] = useState('dia')
   const [projetoId, setProjetoId] = useState(null)
   const [aberta, setAberta] = useState(null)
+  const origemEntrega = useRef(null)
+  const conteudo = useRef(null)
+  const [cadastrandoCliente, setCadastrandoCliente] = useState(false)
   const [tipo, setTipo] = useState('producao')
   const [aviso, setAviso] = useState(null)
   const [relatando, setRelatando] = useState(false)
@@ -367,15 +416,27 @@ function Sistema({ sessao, tema, setTema }) {
   const gestor = eu.perfil === 'admin' || eu.perfil === 'coordenacao'
   const ir = (destino, id = null) => {
     registrar(`Abrir tela ${destino}`)
+    if (destino !== tela || (destino === 'projeto' && id !== projetoId)) {
+      setAberta(null)
+      origemEntrega.current = null
+    }
     setTela(destino)
     if (destino === 'projeto') setProjetoId(id)
     if (menuAberto) fecharMenu(true)
   }
   const abrir = (id) => {
-    if (id) registrar('Abrir entrega')
+    if (id) {
+      registrar('Abrir entrega')
+      origemEntrega.current = document.activeElement
+    } else {
+      const origem = origemEntrega.current
+      if (origem?.isConnected && origem.getClientRects().length) origem.focus()
+      else conteudo.current?.focus()
+      origemEntrega.current = null
+    }
     setAberta(id)
   }
-  const app = { dados, m, eu, gestor, agir, ir, abrir, tipo, setTipo, avisar }
+  const app = { dados, m, eu, gestor, agir, ir, abrir, entregaId: aberta, tipo, setTipo, avisar }
   const entregaAberta = aberta ? m.entregas.find((e) => e.id === aberta) : null
   const timerEntrega = m.timer && m.timer.entrega_id ? m.entregas.find((e) => e.id === m.timer.entrega_id) : null
   const timerProjeto = m.timer ? m.projetoPorId[m.timer.projeto_id] : null
@@ -395,7 +456,7 @@ function Sistema({ sessao, tema, setTema }) {
     versao,
   }
   const clienteAtual = projetoAtual ? m.clientePorId[projetoAtual.cliente_id] : null
-  const nomesDeTela = { dia: 'Meu dia', projetos: 'Projetos', equipe: 'Equipe e piloto' }
+  const nomesDeTela = { dia: 'Meu dia', projetos: 'Projetos', equipe: 'Equipe e piloto', configuracoes: 'Configurações' }
   const caminho = tela === 'projeto' ? [clienteAtual ? clienteAtual.nome : 'Projetos', projetoAtual ? projetoAtual.codigo : 'Projeto'] : [nomesDeTela[tela]]
   const timer = m.timer && {
     titulo: timerEntrega ? timerEntrega.titulo : `Hora sem tarefa em ${timerProjeto ? timerProjeto.nome : 'projeto'}`,
@@ -406,7 +467,7 @@ function Sistema({ sessao, tema, setTema }) {
   return (
     <>
       <div className="app">
-        <Menu app={app} tela={tela} projetoId={projetoId} tema={tema} setTema={setTema} aberto={menuAberto} fechar={fecharMenu} sair={() => supabase.auth.signOut()} />
+        <Menu app={app} tela={tela} projetoId={projetoId} tema={tema} setTema={setTema} aberto={menuAberto} fechar={fecharMenu} aoCadastrarCliente={() => setCadastrandoCliente(true)} sair={() => supabase.auth.signOut()} />
         <div className="area">
           <BarraTopo
             caminho={caminho}
@@ -417,7 +478,7 @@ function Sistema({ sessao, tema, setTema }) {
             menuAberto={menuAberto}
             botaoMenu={botaoMenu}
           />
-          <main className="conteudo">
+          <main ref={conteudo} className="conteudo" tabIndex={-1}>
             {falha && (
               <p role="alert" className="cartao aviso-conexao pequeno forte perigo">
                 Sem conexão com o servidor no momento. Os dados na tela podem estar desatualizados.
@@ -430,6 +491,7 @@ function Sistema({ sessao, tema, setTema }) {
                   {tela === 'projetos' && <Projetos app={app} />}
                   {tela === 'projeto' && <Projeto app={app} projetoId={projetoId} />}
                   {tela === 'equipe' && gestor && <Equipe app={app} />}
+                  {tela === 'configuracoes' && <Configuracoes app={app} />}
                 </Barreira>
               </div>
               {entregaAberta && (
@@ -443,6 +505,9 @@ function Sistema({ sessao, tema, setTema }) {
           </main>
         </div>
       </div>
+      {cadastrandoCliente && gestor && (
+        <CadastroCliente app={app} aoFechar={() => setCadastrandoCliente(false)} />
+      )}
       {aviso && (
         <div className={`aviso ${aviso.erro ? 'erro' : ''}`} role={aviso.erro ? 'alert' : 'status'}>
           <div>

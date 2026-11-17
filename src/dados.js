@@ -34,10 +34,27 @@ export const FLUXOS = [
 export const statusPorId = (id) => STATUS.find((s) => s.id === id) || STATUS[0]
 export const tipoPorId = (id) => TIPOS.find((t) => t.id === id) || TIPOS[0]
 
+const BUCKET_FOTOS = 'fotos-perfil'
+const EXTENSOES_FOTO = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }
+export const TIPOS_FOTO = Object.keys(EXTENSOES_FOTO).join(',')
+export const LIMITE_FOTO = 2 * 1024 * 1024
+
 async function ok(consulta) {
   const { data, error } = await consulta
   if (error) throw new Error(error.message)
   return data
+}
+
+async function assinarFotos(pessoas) {
+  const caminhos = [...new Set(pessoas.map((p) => p.foto_caminho).filter(Boolean))]
+  if (!caminhos.length) return pessoas
+  try {
+    const assinaturas = await ok(supabase.storage.from(BUCKET_FOTOS).createSignedUrls(caminhos, 300))
+    const urls = Object.fromEntries(assinaturas.map(({ path, signedUrl }) => [path, signedUrl]))
+    return pessoas.map((p) => ({ ...p, foto_url: urls[p.foto_caminho] || null }))
+  } catch {
+    return pessoas
+  }
 }
 
 export async function carregar() {
@@ -51,7 +68,61 @@ export async function carregar() {
     ok(supabase.from('horas').select('*').order('inicio')),
     ok(supabase.from('comentarios').select('*').order('criado_em')),
   ])
-  return { pessoas, clientes, projetos, entregas, responsaveis, etapas, horas, comentarios }
+  return { pessoas: await assinarFotos(pessoas), clientes, projetos, entregas, responsaveis, etapas, horas, comentarios }
+}
+
+export async function alterarMeuNome(nome) {
+  const { error } = await supabase.rpc('alterar_meu_nome', { novo_nome: nome.trim() })
+  if (error?.code === 'PGRST202') throw new Error('A edição do perfil ainda não está habilitada neste ambiente.')
+  if (error) throw new Error(error.message)
+}
+
+export function validarFoto(arquivo) {
+  if (!Object.hasOwn(EXTENSOES_FOTO, arquivo.type)) return 'Escolha uma imagem JPEG, PNG ou WebP.'
+  if (!arquivo.size || arquivo.size > LIMITE_FOTO) return 'Escolha uma imagem de até 2 MB.'
+  return ''
+}
+
+export async function alterarMinhaFoto(pessoa, arquivo) {
+  if (!Object.hasOwn(pessoa, 'foto_caminho')) {
+    throw new Error('A foto de perfil ainda não está habilitada neste ambiente.')
+  }
+
+  const bucket = supabase.storage.from(BUCKET_FOTOS)
+  let caminho = null
+  if (arquivo) {
+    const invalida = validarFoto(arquivo)
+    if (invalida) throw new Error(invalida)
+    caminho = `${pessoa.id}/${crypto.randomUUID()}.${EXTENSOES_FOTO[arquivo.type]}`
+  }
+
+  async function limparFoto(caminhoAntigo) {
+    if (!caminhoAntigo) return
+    try {
+      await bucket.remove([caminhoAntigo])
+    } catch {
+      return
+    }
+  }
+
+  if (caminho) await ok(bucket.upload(caminho, arquivo, { contentType: arquivo.type, upsert: false }))
+  const { data: anterior, error } = await supabase.rpc('alterar_minha_foto', { novo_caminho: caminho })
+  if (error) {
+    if (['P0001', '23514', '42501', 'PGRST202'].includes(error.code)) await limparFoto(caminho)
+    if (error.code === 'PGRST202') throw new Error('A foto de perfil ainda não está habilitada neste ambiente.')
+    throw new Error(error.message)
+  }
+  if (anterior !== caminho) await limparFoto(anterior)
+}
+
+export async function alterarMinhaSenha(atual, nova) {
+  const { error } = await supabase.auth.updateUser({ current_password: atual, password: nova })
+  if (!error) return
+  if (error.code === 'reauthentication_needed') throw new Error('Entre novamente na sua conta para alterar a senha.')
+  if (error.code === 'invalid_credentials') throw new Error('A senha atual está incorreta.')
+  if (error.code === 'same_password') throw new Error('A nova senha deve ser diferente da atual.')
+  if (error.code === 'weak_password') throw new Error('Escolha uma senha mais forte.')
+  throw new Error(error.message)
 }
 
 export const hoje = () => {

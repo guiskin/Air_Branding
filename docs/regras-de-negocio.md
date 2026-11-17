@@ -37,4 +37,11 @@ Qualquer membro reporta bug ou melhoria. O contexto (tela, projeto, entrega, úl
 
 ## Fora do piloto
 
-Funil comercial, carga da equipe, Gantt, relatório de projeto, importação do ClickUp, exportação para BI.
+Funil comercial, carga da equipe, Gantt interativo, relatório de projeto, importação do ClickUp, exportação para BI.
+
+## Acompanhamento do projeto
+
+- A lista agrupa entregas por status em seções recolhíveis. Os indicadores contam entregas abertas, atrasadas e concluídas e somam horas encerradas no projeto.
+- A linha do tempo mostra entregas abertas com prazo. Com início vazio, usa o dia local da criação. Se o prazo vier antes do início, mostra uma barra de um dia no prazo. As entregas abertas sem prazo aparecem no total separado.
+- A equipe inclui os responsáveis pelas entregas e por suas etapas. Cada pessoa vê as horas encerradas que o banco permite consultar no projeto, inclusive horas sem entrega.
+- O painel de regras descreve o comportamento de avançar etapas. A entrega aberta fecha ao trocar de tela ou de projeto.

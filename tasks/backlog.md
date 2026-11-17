@@ -2,6 +2,10 @@
 
 Sugestões, sem compromisso. Nada aqui é implementado sem pedido e aprovação.
 
+## Ideias do usuário (2026-11-17)
+
+Configurações (foto de perfil, senha, nome completo, fonte -1) e ajustes da tela de clientes: detalhes em `tasks/004-ideias-configuracoes-e-clientes.md`.
+
 ## Escopo futuro do produto (já definido no README)
 
 - Funil comercial

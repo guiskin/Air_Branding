@@ -7,8 +7,9 @@ Registro do que já foi executado no SQL Editor do Supabase. O repositório não
 | `01_estrutura.sql` | Estrutura, RLS, gatilho de convite, realtime | 2026-11-16 (noite, horário de Brasília) | Informado pelo usuário. Políticas de `pessoas` e `convites` conferidas: batem com o script. |
 | `02_convites_e_exemplos.sql` | Convites dos administradores e dados de exemplo | 2026-11-16 (noite, horário de Brasília) | Convites conferidos: só existe o convite do administrador real, sem e-mails fictícios. |
 | `03_perfil_admin_e_desativar_pessoa.sql` | Perfil admin protegido, `pessoas.ativo`, `restrict` no histórico, privilégios mínimos | 2026-11-17 | Testado antes no projeto de teste (35 testes de comportamento e 22 operações do app, todos como esperado; ver o fim de `tasks/001-roteiro-de-aplicacao.md`). Aplicado no banco real por Claude, pelo conector do Supabase, com aprovação explícita do usuário; script executado inteiro com `begin`/`commit`, sem erro. Conferido depois: ver "Estado do banco após o 03". |
+| `04_configuracoes_de_perfil.sql` | Nome próprio editável e fotos de perfil em bucket privado | Pendente | Migração criada e revisada localmente. Testar RPCs, RLS e Storage em `airbranding-teste` antes de aplicar no banco real. |
 
-Nenhum outro script foi executado no banco real. Próximo número livre: `04`.
+Nenhum outro script foi executado no banco real. Próximo número livre: `05`.
 
 ## Projeto de teste
 

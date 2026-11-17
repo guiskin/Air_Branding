@@ -1,11 +1,13 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import * as D from './dados'
-import { CampoSalvo, relogio, textoPrazo } from './pecas'
+import { Avatar, CampoSalvo, relogio, textoPrazo } from './pecas'
 import { SeletorTipo } from './telas'
 
 export default function Painel({ app, entrega }) {
   const [minutos, setMinutos] = useState('30')
   const [texto, setTexto] = useState('')
+  const botaoFechar = useRef(null)
+  useEffect(() => botaoFechar.current?.focus(), [])
   const e = entrega
   const rodando = app.m.timer && app.m.timer.entrega_id === e.id
   const salvar = (rotulo, mudancas) => app.agir(`${rotulo} em "${e.titulo}"`, () => D.atualizarEntrega(e.id, mudancas))
@@ -17,13 +19,18 @@ export default function Painel({ app, entrega }) {
     if (feito !== undefined) setTexto('')
   }
   return (
-    <aside className="cartao pilha solta" aria-label="Detalhe da entrega">
+    <aside className="cartao pilha solta" aria-label="Detalhe da entrega" onKeyDown={(evento) => {
+      if (evento.key === 'Escape') {
+        evento.stopPropagation()
+        app.abrir(null)
+      }
+    }}>
       <div className="fila entre">
         <span className="pequeno suave">
           {e.cliente ? `${e.cliente.nome}, ` : ''}
           {e.projeto ? `${e.projeto.codigo} ${e.projeto.nome}` : ''}
         </span>
-        <button className="botao pequeno" onClick={() => app.abrir(null)}>
+        <button ref={botaoFechar} className="botao pequeno" onClick={() => app.abrir(null)}>
           Fechar
         </button>
       </div>
@@ -157,6 +164,7 @@ export default function Painel({ app, entrega }) {
                 aria-pressed={dentro}
                 onClick={() => app.agir(`${dentro ? 'Tirar' : 'Incluir'} ${p.nome} em "${e.titulo}"`, () => D.alternarResponsavel(e.id, p.id, !dentro))}
               >
+                <Avatar pessoa={p} />
                 {p.nome}
               </button>
             )
@@ -178,16 +186,23 @@ export default function Painel({ app, entrega }) {
         </a>
       )}
 
-      <div className="pilha media">
-        <div className="rotulo">Conversa</div>
-        {e.comentarios.map((c) => (
-          <div key={c.id} className="comentario">
-            <div className="pequeno forte">
-              {(app.m.pessoaPorId[c.autor_id] || {}).nome || 'Alguém'}, {new Date(c.criado_em).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+      <section className="pilha media conversa" aria-labelledby="titulo-conversa">
+        <h2 id="titulo-conversa" className="titulo-grupo">Conversa</h2>
+        {!e.comentarios.length && <p className="pequeno suave">Nenhum comentário nesta entrega.</p>}
+        {e.comentarios.map((c) => {
+          const autor = app.m.pessoaPorId[c.autor_id]
+          return (
+            <div key={c.id} className="comentario">
+              {autor && <Avatar pessoa={autor} />}
+              <div className="pilha minima">
+                <div className="pequeno forte">
+                  {autor?.nome || 'Alguém'}, {new Date(c.criado_em).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                </div>
+                <div className="texto-livre">{c.texto}</div>
+              </div>
             </div>
-            <div className="texto-livre">{c.texto}</div>
-          </div>
-        ))}
+          )
+        })}
         <label className="pequeno suave" htmlFor="pe-comentario">
           Escrever comentário
         </label>
@@ -203,7 +218,7 @@ export default function Painel({ app, entrega }) {
             Enviar
           </button>
         </div>
-      </div>
+      </section>
     </aside>
   )
 }

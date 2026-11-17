@@ -42,4 +42,4 @@ Piloto da ferramenta própria de gestão de projetos da Air Branding. Vite + Rea
 
 ## Escopo do piloto
 
-Entregas, etapas, timer e horas, comentários, relatos de bug. Fica para depois: funil comercial, carga da equipe, Gantt, relatório de projeto, importação do ClickUp, exportação para BI. Não implemente o que está nessa lista sem pedido explícito.
+Entregas, etapas, timer e horas, comentários, relatos de bug, linha do tempo de entregas abertas e configurações de perfil. Fica para depois: funil comercial, carga da equipe, Gantt interativo, relatório de projeto, importação do ClickUp, exportação para BI. Não implemente o que está nessa lista sem pedido explícito.

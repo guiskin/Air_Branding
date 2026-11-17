@@ -7,12 +7,14 @@ Piloto da ferramenta própria de gestão de projetos, para substituir o Gestor a
 - Entrada com e-mail e senha, só para quem foi convidado.
 - Clientes, projetos (com código e linha de serviço) e entregas com etapas.
 - Meu dia, lista e quadro por status (oito status padronizados).
+- Indicadores, linha do tempo de entregas abertas, regras automáticas e equipe do projeto.
+- Configurações de perfil para editar nome e foto, e alterar a senha.
 - Timer e lançamento manual de horas, com tipo de hora, inclusive hora sem tarefa.
 - Comentários, responsáveis, prazo, prioridade, briefing e link do Drive.
 - Botão "Reportar bug ou ideia", que grava o relato com o contexto (tela, entrega, últimos cliques, último erro, navegador).
 - Tela "Equipe e piloto" para coordenação e administradores: pessoas, convites e relatos.
 
-Fica para depois: funil comercial, carga da equipe por semana, Gantt, relatório de projeto, importação do ClickUp e exportação para o BI.
+Fica para depois: funil comercial, carga da equipe por semana, Gantt interativo, relatório de projeto, importação do ClickUp e exportação para o BI.
 
 ## Publicação
 
@@ -41,7 +43,7 @@ Fica para depois: funil comercial, carga da equipe por semana, Gantt, relatório
 1. Abra o endereço publicado e use "Primeiro acesso? Criar minha conta" com um dos e-mails de administrador.
 2. Em "Equipe e piloto", convide as pessoas do teste (e-mail, nome, área e perfil).
 3. Cada convidado cria a própria senha em "Primeiro acesso" e confirma o e-mail pelo link que recebe.
-4. Cadastre os clientes e projetos de teste em "Projetos".
+4. Cadastre clientes pelo botão "+" ao lado de "Clientes" no menu. Cadastre projetos na tela "Projetos".
 
 ## Durante o piloto
 

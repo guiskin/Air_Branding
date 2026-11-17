@@ -11,6 +11,8 @@ Aplicação de página única (SPA) em Vite + React 18, em JavaScript. Não há 
 | | `src/menu.jsx` | Menu lateral (navegação, clientes e projetos, usuário, tema, Sair) e barra superior (caminho, timer, Reportar). |
 | | `src/tema.js` | Lê e grava a escolha claro/escuro no navegador e aplica `data-tema` no `<html>`. |
 | | `src/telas.jsx` | Meu dia, Projetos, Projeto, Equipe e piloto. |
+| | `src/paineis-projeto.jsx` | Indicadores, linha do tempo, regras e equipe do projeto. |
+| | `src/Configuracoes.jsx` | Alteração de nome, foto e senha da própria conta. |
 | | `src/Painel.jsx` | Detalhe da entrega. |
 | | `src/pecas.jsx` | Peças reutilizáveis (avatar, status, barra, campo salvo). |
 | | `src/estilos.css` | Todo o CSS: tokens em `:root`, tema escuro em `:root[data-tema='escuro']`, cores de status e de avatar por classe. Ver `design-system.md`. |
@@ -29,7 +31,7 @@ Consequência conhecida: o volume lido cresce com o total de dados, não com o q
 
 ## Navegação
 
-Sem roteador. A tela ativa (`dia`, `projetos`, `projeto`, `equipe`) e a entrega aberta ficam em estado no componente `Sistema`; a URL não muda. Os atalhos do menu lateral (Meu dia, Projetos, Equipe e piloto e a árvore Cliente > Projeto) chamam `app.ir`. Em tela estreita o menu é uma gaveta controlada pelo estado `menuAberto` de `Sistema`.
+Sem roteador. A tela ativa (`dia`, `projetos`, `projeto`, `equipe`, `configuracoes`) e a entrega aberta ficam no estado de `Sistema`. Os atalhos do menu chamam `app.ir`, que fecha os detalhes quando a pessoa troca de tela ou de projeto. Em tela estreita o menu é uma gaveta controlada pelo estado `menuAberto`. O formulário de cadastro de cliente abre em um diálogo nativo pelo botão "+" do menu.
 
 ## Autenticação e acesso
 

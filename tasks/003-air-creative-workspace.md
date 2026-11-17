@@ -1,6 +1,6 @@
 # 003: Air Creative Workspace (menu lateral, tema claro/escuro e painéis do projeto)
 
-- **Status:** aprovada pelo usuário no chat em 2026-11-17. Fase 1 publicada na `main`; fase 2 implementada (aguarda revisão e merge); fases 3 a 5 não iniciadas.
+- **Status:** fases 1 e 2 na `main`. Fase 3 com lista e indicadores implementados, aguardando a escolha do formato dos detalhes. Fase 4 implementada. Foto de perfil entrou no pedido registrado na tarefa 004.
 - **Branch:** uma por fase: `feat/ux-1-fundacao`, `feat/ux-2-menu-lateral`, `feat/ux-3-projeto`, `feat/ux-4-coluna-lateral`, `feat/ux-5-foto` (fase 5 só se aprovada)
 
 ## Objetivo
@@ -138,6 +138,14 @@ Valem para todas as fases, depois os específicos de cada uma.
 - [ ] Foto aparece no menu e na equipe; sem foto, aparecem as iniciais.
 
 ## Resumo do que mudou
+
+### Fases 3 e 4
+
+- Lista de entregas recolhível por status, indicadores do projeto e visão Quadro mantida.
+- Linha do tempo das entregas abertas, regras automáticas existentes e equipe com horas por pessoa.
+- Seleção destacada na lista, no Quadro e na linha do tempo. Esc fecha os detalhes e devolve o foco. Sair da tela ou trocar de projeto também fecha os detalhes.
+- Formato dos detalhes da entrega aguarda escolha após os exemplos visuais.
+- Verificado com dados simulados: seleção, comentário, fechamento por teclado e navegação, e empilhamento sem rolagem horizontal a 375 px. Validação das datas da linha do tempo no fuso de São Paulo passou. Teste autenticado no Supabase pendente.
 
 ### Fase 2 (branch `feat/ux-2-menu-lateral`)
 
