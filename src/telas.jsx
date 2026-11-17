@@ -86,7 +86,7 @@ export function MeuDia({ app }) {
       <div>
         <h1>Olá, {D.primeiroNome(app.eu)}</h1>
         <p className="suave">
-          {comigo.length === 1 ? '1 entrega com você agora' : `${comigo.length} entregas com você agora`}. Hoje você lançou {D.fmtMin(meusMinutosHoje)}.
+          {comigo.length === 0 ? 'Nenhuma entrega com você agora' : comigo.length === 1 ? '1 entrega com você agora' : `${comigo.length} entregas com você agora`}. {meusMinutosHoje > 0 ? `Hoje você lançou ${D.fmtMin(meusMinutosHoje)}.` : 'Você ainda não lançou horas hoje.'}
         </p>
       </div>
       <section className="cartao fila fim">
