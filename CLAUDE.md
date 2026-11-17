@@ -37,7 +37,7 @@ Piloto da ferramenta própria de gestão de projetos da Air Branding. Vite + Rea
 ## Identidade visual
 
 - Laranja da marca `#FF3301`; títulos em Barlow Condensed, texto em Poppins; cards com cantos arredondados.
-- O selo "air" no cabeçalho e no login é provisório (aguarda o logo oficial).
+- O cabeçalho e o login usam o logo oficial (`public/logo.jpg`). Cores só por variáveis de `:root` em `src/estilos.css`.
 
 ## Escopo do piloto
 
