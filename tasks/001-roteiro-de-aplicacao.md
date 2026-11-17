@@ -155,3 +155,29 @@ rollback;
 - Qualquer script futuro com `grant ... on all tables ... to authenticated` desfaz o D8 e a restrição de colunas de `pessoas`.
 - O gatilho sem `execute` para `authenticated` depende de comportamento do Postgres que não foi testado aqui (ver o primeiro teste).
 - Sem backup (plano gratuito): a reversão de D4 e D8 depende da saída salva das consultas "antes".
+
+## 5. Resultado no projeto de teste (2026-11-17)
+
+Aplicado e testado em um projeto de teste separado (`airbranding-teste`, plano gratuito), criado vazio e preenchido com o `01`, uma versão fictícia do `02` (4 pessoas de teste: admin, 2 coordenações e 1 membro, com e-mails `.test`) e alguns dados (entrega, horas com timer aberto, comentário e relato). **O banco real não foi tocado.**
+
+**Antes (no teste, igual ao real pelo que se viu):** `anon` e `authenticated` com todos os privilégios em `pessoas` (select, insert, update, delete, truncate, references, trigger e `maintain`, que existe no Postgres 17); as 10 tabelas e nada mais em `public`; FKs `horas_pessoa_id_fkey`, `comentarios_autor_id_fkey` e `relatos_autor_id_fkey` com `cascade`.
+
+**Script 03:** executado inteiro, com `begin`/`commit`, sem erro. A trava e o bloco dinâmico das FKs passaram.
+
+**Depois:**
+- `anon`: nenhum privilégio em nenhuma tabela. Nenhum `truncate`, `references`, `trigger` ou `maintain` para `anon` e `authenticated`.
+- `authenticated`: só o que as políticas usam (`pessoas`: `select`, e `update` apenas em `nome`, `area`, `perfil`, `capacidade_mensal`, `ativo`).
+- FKs de `horas`, `comentarios` e `relatos` em `restrict`; `pessoas.id` para `auth.users` continua `cascade`.
+- Políticas novas de `pessoas`, `convites` e `horas`, como no script.
+
+**Testes de comportamento (35, todos como esperado):**
+- Admin edita membro (prova que o gatilho executa mesmo sem `execute` para `authenticated`), cria convite de admin, e não altera o próprio perfil nem desativa a própria conta.
+- Coordenação convida membro e coordenação; não convida admin, não promove ninguém a admin, não edita nem desativa admin (0 linhas); promove e rebaixa membro, desativa e reativa outra coordenação (D1); não altera o próprio perfil nem desativa a própria conta; não troca e-mail, não apaga nem insere `pessoas`; não apaga convite de admin.
+- Desativar o membro fechou o timer aberto (12 min); desativado não vê entregas, não cria horas e não edita horas; reativar devolve o acesso.
+- `anon` não lê `pessoas` nem cria convite.
+- Apagar usuário com histórico falha por `horas_pessoa_id_fkey`; sem histórico funciona e a pessoa some.
+- Cadastro de e-mail não convidado falha; de convidado funciona e nasce `ativo = true`.
+
+**Operações do app (22, como membro e como coordenação, espelhando `dados.js`):** carregar as 8 tabelas, criar entrega, responsável, etapas, concluir etapa, mudar status, comentar, iniciar e parar timer, hora manual, tirar responsável, enviar relato, criar cliente e projeto, editar projeto, ler convites e relatos, marcar relato resolvido, remover convite, apagar entrega. Todas passaram; as proibidas falharam como deveriam. A coluna `ativo` e as demais colunas de `pessoas` aparecem como editáveis.
+
+**O que não foi testado:** o app em si contra o projeto de teste (login real, tela e realtime), o e-mail de confirmação (D2) e o botão de apagar usuário no painel (a falha da FK foi vista por SQL). O `alter default privileges` só vale para tabelas criadas pelo papel `postgres`; o `supabase_admin` mantém o padrão da plataforma (conferido em `pg_default_acl`).

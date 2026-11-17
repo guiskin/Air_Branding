@@ -6,9 +6,13 @@ Registro do que já foi executado no SQL Editor do Supabase. O repositório não
 |---|---|---|---|
 | `01_estrutura.sql` | Estrutura, RLS, gatilho de convite, realtime | 2026-11-16 (noite, horário de Brasília) | Informado pelo usuário. Políticas de `pessoas` e `convites` conferidas: batem com o script. |
 | `02_convites_e_exemplos.sql` | Convites dos administradores e dados de exemplo | 2026-11-16 (noite, horário de Brasília) | Convites conferidos: só existe o convite do administrador real, sem e-mails fictícios. |
-| `03_perfil_admin_e_desativar_pessoa.sql` | Perfil admin protegido, `pessoas.ativo`, `restrict` no histórico, privilégios mínimos | **Não aplicado** | Pronto; seguir `tasks/001-roteiro-de-aplicacao.md`. |
+| `03_perfil_admin_e_desativar_pessoa.sql` | Perfil admin protegido, `pessoas.ativo`, `restrict` no histórico, privilégios mínimos | **Não aplicado no real** | Aplicado e testado no projeto de teste em 2026-11-17 (35 testes de comportamento e 22 operações do app, todos como esperado; ver o fim de `tasks/001-roteiro-de-aplicacao.md`). Falta aplicar no banco real. |
 
-Nenhum outro script foi executado. Próximo número livre: `04`.
+Nenhum outro script foi executado no banco real. Próximo número livre: `04`.
+
+## Projeto de teste
+
+Existe um segundo projeto gratuito, `airbranding-teste`, criado em 2026-11-17 na mesma organização, só para testar scripts antes do banco real. Tem o `01`, uma versão fictícia do `02` (pessoas de teste com e-mails `.test`) e o `03`. Seus dados são descartáveis. Para repetir um teste do zero, apague as tabelas e reaplique em ordem.
 
 ## Estado do banco na conferência de 2026-11-16
 
