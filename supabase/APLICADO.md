@@ -6,7 +6,7 @@ Registro do que já foi executado no SQL Editor do Supabase. O repositório não
 |---|---|---|---|
 | `01_estrutura.sql` | Estrutura, RLS, gatilho de convite, realtime | 2026-11-16 (noite, horário de Brasília) | Informado pelo usuário. Políticas de `pessoas` e `convites` conferidas: batem com o script. |
 | `02_convites_e_exemplos.sql` | Convites dos administradores e dados de exemplo | 2026-11-16 (noite, horário de Brasília) | Convites conferidos: só existe o convite do administrador real, sem e-mails fictícios. |
-| `03_perfil_admin_e_desativar_pessoa.sql` | Perfil admin protegido, `pessoas.ativo`, `restrict` no histórico, privilégios mínimos | **Não aplicado no real** | Aplicado e testado no projeto de teste em 2026-11-17 (35 testes de comportamento e 22 operações do app, todos como esperado; ver o fim de `tasks/001-roteiro-de-aplicacao.md`). Falta aplicar no banco real. |
+| `03_perfil_admin_e_desativar_pessoa.sql` | Perfil admin protegido, `pessoas.ativo`, `restrict` no histórico, privilégios mínimos | 2026-11-17 | Testado antes no projeto de teste (35 testes de comportamento e 22 operações do app, todos como esperado; ver o fim de `tasks/001-roteiro-de-aplicacao.md`). Aplicado no banco real por Claude, pelo conector do Supabase, com aprovação explícita do usuário; script executado inteiro com `begin`/`commit`, sem erro. Conferido depois: ver "Estado do banco após o 03". |
 
 Nenhum outro script foi executado no banco real. Próximo número livre: `04`.
 
@@ -14,12 +14,18 @@ Nenhum outro script foi executado no banco real. Próximo número livre: `04`.
 
 Existe um segundo projeto gratuito, `airbranding-teste`, criado em 2026-11-17 na mesma organização, só para testar scripts antes do banco real. Tem o `01`, uma versão fictícia do `02` (pessoas de teste com e-mails `.test`) e o `03`. Seus dados são descartáveis. Para repetir um teste do zero, apague as tabelas e reaplique em ordem.
 
-## Estado do banco na conferência de 2026-11-16
+## Estado do banco após o 03 (2026-11-17)
 
-- `convites`: 1 linha (o administrador real). Nenhum convite pendente.
-- `pessoas`: 1 pessoa, perfil admin, criada logo depois da aplicação do `01`.
-- Políticas de `pessoas` e `convites`: `convites_gestor` (all), `pessoas_editar` (update) e `pessoas_ver` (select), iguais ao `01`.
-- Privilégios: o papel `authenticated` tem, além de select, insert e update, também `delete`, `truncate`, `references` e `trigger` em `pessoas` (padrão do Supabase). A listagem completa tinha 28 linhas e não foi vista inteira: falta confirmar quais papéis (por exemplo `anon`) têm o quê. Ver tarefa `001`, D8.
+Antes do 03, no banco real: as 10 tabelas conhecidas e nenhuma outra em `public`; `anon` e `authenticated` com todos os privilégios (incluindo `truncate`, `references`, `trigger` e `maintain`) em todas as tabelas, concedidos pelo papel `postgres`; chaves de `horas`, `comentarios` e `relatos` em `cascade`; políticas iguais ao `01`.
+
+Depois do 03, conferido no banco real:
+- `anon`: nenhum acesso a nenhuma tabela. Nenhum `truncate`, `references`, `trigger` ou `maintain` para `anon` e `authenticated`.
+- `authenticated`: só o que as políticas usam (`pessoas`: `select`, com `update` apenas em `nome`, `area`, `perfil`, `capacidade_mensal` e `ativo`).
+- 3 chaves de histórico em `restrict`; gatilho `pessoas_proteger` presente; `pessoas.ativo` verdadeiro para a 1 pessoa existente; políticas de `pessoas`, `convites` e `horas` como no script.
+- Dados intactos: 1 pessoa (administrador ativo), 1 convite, 2 clientes, 3 projetos, 1 relato.
+- Simulando o login do administrador: carrega as tabelas, lê convites e relatos, `eh_admin()` verdadeiro. Simulando `anon`: acesso negado a `pessoas`.
+
+Não verificado no real: o app em uso (login pela tela e realtime) e o e-mail de confirmação com endereço externo. O `alter default privileges` só vale para tabelas criadas pelo papel `postgres`.
 
 ## Configurações fora do SQL (painel do Supabase)
 

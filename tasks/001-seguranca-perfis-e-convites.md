@@ -1,6 +1,6 @@
 # 001: segurança de perfis, convites e desativação de pessoas
 
-- **Status:** decisões D1 a D8 tomadas (2026-11-16, em `docs/decisoes.md`). Script 03 pronto em `supabase/` e **não aplicado**; roteiro em `tasks/001-roteiro-de-aplicacao.md`. Interface (D5, D7) ainda sem implementação: aguarda aprovação para abrir a branch.
+- **Status:** decisões D1 a D8 tomadas (2026-11-16, em `docs/decisoes.md`). Script 03 testado no projeto de teste e **aplicado no banco real em 2026-11-17** (ver `supabase/APLICADO.md`); roteiro e resultados em `tasks/001-roteiro-de-aplicacao.md`. Interface (D5, D7) ainda sem implementação: aguarda aprovação para abrir a branch.
 - **Branch:** `fix/seguranca-fase1` (documentação). A implementação do script e das telas usa branch própria, depois da aprovação.
 - **Origem:** auditoria de 2026-11-16 (S1, S2, S3, B1; itens R1 e R2 do backlog). Análise feita pelo agente `analista-banco`.
 
