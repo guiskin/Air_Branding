@@ -27,7 +27,8 @@ Na validação do `05`, sessões simuladas conferiram cadastro, edição, cópia
 
 - Antes: nenhuma das funções `excluir_equipe` e `avancar_etapa`, sem a coluna `projetos.pasta_drive`, tabelas da 05 presentes, `eh_gestor()` presente, `authenticated` com select, insert e update em `projetos`, Postgres 17.12; 11 pessoas, 4 projetos, 3 entregas, 5 etapas, 1 comentário.
 - Depois: `excluir_equipe` (`security definer`) e `avancar_etapa` (`security invoker`) executáveis só por `authenticated`; coluna `pasta_drive` `text not null default ''` com o check `projetos_pasta_drive_valida`; nenhum projeto com link ainda; contagens iguais às de antes.
-- Não verificado no real: concluir etapa, excluir equipe e salvar a pasta do Drive pela interface publicada.
+- No deploy `58dcda2`, a entrega `[QA] Fluxo de etapas 1711` avançou de Conteúdo para Design e registrou o comentário automático. O link fictício do Drive persistiu no projeto `QA_1711_PAIN` após recarregar. A equipe descartável de QA deixou de aparecer após recarregar a lista. O usuário informou que os testes de foto e senha passaram.
+- Limpeza dos dados `[QA]` em 2026-11-17, com aprovação do usuário: apagados o projeto `QA_1711_PAIN` (com suas 2 entregas, etapas e comentário, por cascade) e a equipe `[QA] Equipe Painéis 1711`, em uma transação com travas. Contagens finais (3 projetos, 2 entregas, 5 etapas, 1 comentário, 1 hora, 11 pessoas, 0 equipes) iguais às da exportação local do mesmo dia.
 
 ## Estado do banco após o 05 (2026-11-17)
 
@@ -57,13 +58,13 @@ Não verificado no real: o app em uso (login pela tela e realtime) e o e-mail de
 
 ## Configurações fora do SQL (painel do Supabase)
 
-| Item | Onde | Estado em 2026-11-16 |
+| Item | Onde | Estado |
 |---|---|---|
 | Confirmação de e-mail ("Confirm email") | Authentication, provedor Email | **Ligada** (decisão D2: fica ligada; README já corrigido. Falta testar se um e-mail externo recebe o link) |
 | Permitir novos cadastros ("Allow new users to sign up") | Authentication | Ligado |
-| Provedor de e-mail (embutido ou SMTP próprio) | Authentication, SMTP Settings | Não verificado; no plano gratuito, sem SMTP próprio configurado, é o embutido, com limite baixo de envios (conferir os limites atuais na documentação) |
-| Backup do banco | Project Settings, Database | **Não há** (plano gratuito) |
-| Site URL | Authentication, URL Configuration | _a confirmar_ |
+| Provedor de e-mail (embutido ou SMTP próprio) | Authentication, SMTP Settings | SMTP próprio desativado, conferido em 2026-11-17. |
+| Backup do banco | Exportação manual | Exportação concluída, conforme informado pelo usuário em 2026-11-17. |
+| Site URL | Authentication, URL Configuration | `https://air-branding.pages.dev`, gravado e conferido em 2026-11-17. |
 
 ## Como usar
 
