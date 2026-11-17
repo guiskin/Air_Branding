@@ -73,7 +73,8 @@ function Login() {
     <div className="centro">
       <form className="cartao pilha" onSubmit={enviar} style={{ gap: 16 }}>
         <div>
-          <h1 style={{ fontSize: 24 }}>Gestor de Projetos</h1>
+          <div className="marca" style={{ marginBottom: 8 }}><span className="logo">air</span></div>
+          <h1 style={{ fontSize: 32 }}>Gestor de Projetos</h1>
           <p className="suave">Piloto de testes. Entre com o e-mail que recebeu o convite.</p>
         </div>
         <label className="campo" htmlFor="lg-email">
@@ -388,7 +389,7 @@ function Sistema({ sessao }) {
       <header className="topo">
         <div className="topo-dentro">
           <div>
-            <div className="marca">Gestor de Projetos</div>
+            <div className="marca"><span className="logo">air</span>Gestor de Projetos</div>
             <div className="pequeno suave">
               Piloto de testes, {eu.nome}
             </div>
