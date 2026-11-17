@@ -4,7 +4,8 @@
       "Bash(npm run build)",
       "Bash(git status:*)",
       "Bash(git diff:*)",
-      "Bash(git log:*)"
+      "Bash(git log:*)",
+      "Bash(git push origin main)"
     ],
     "ask": [
       "Bash(npm install:*)",
@@ -14,7 +15,8 @@
       "Bash(git branch -D:*)"
     ],
     "deny": [
-      "Bash(git push:*)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
       "Read(./.env)",
       "Read(./.env.local)"
     ]
