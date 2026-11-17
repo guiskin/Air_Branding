@@ -66,10 +66,12 @@ Os ids e nomes dos status vivem em `src/dados.js` (e no `check` do SQL); as core
 
 Oito cores (`--avatar-0` a `--avatar-7`), iguais nos dois temas, texto sempre branco. `corPessoa(id)` em `dados.js` devolve o índice; o componente aplica `.avatar.cor-N`.
 
+O avatar do perfil tem 60 px no menu e em Configurações. O avatar padrão tem 30 px e o das pílulas de pessoa tem 22 px.
+
 ## Tipografia
 
 - Títulos: Barlow Condensed 800, caixa alta, `h1` 40px (32px no celular), `h2` 26px, `h2.titulo-grupo` 20px.
-- Texto: Poppins 400/500/600/700, 15px base, `.pequeno` 13px, rótulos de campo 13px em negrito.
+- Texto: Poppins 400/500/600/700, 14px base, `.pequeno` e rótulos de campo 12px. O token `--ajuste-fonte` reduz os tamanhos em 1px.
 - Números de horas e relógio: `font-variant-numeric: tabular-nums` no timer.
 
 ## Espaçamento e forma
@@ -94,7 +96,7 @@ Oito cores (`--avatar-0` a `--avatar-7`), iguais nos dois temas, texto sempre br
 | Pessoas | `.avatar`, `.avatares`, `.pilula.pessoa` | |
 | Progresso | `.barra` | Tem `role="img"` e rótulo com a porcentagem. |
 | Timer | `.timer-chip`, `.relogio` | Chip vinho com texto branco na barra superior; o relógio usa algarismos tabulares. |
-| Aviso | `.aviso`, `.aviso.erro` | Erro usa `role="alert"`; sucesso `role="status"` e some em 4 s. |
+| Aviso | `.aviso`, `.aviso.erro` | Erro usa `role="alert"` e sucesso usa `role="status"`. Ambos somem após 10 segundos. |
 | Janela | `.veu`, `.janela` | `role="dialog"` e `aria-modal`. |
 | Estados | texto "Carregando…", cartão de erro com "Tentar de novo", frases de vazio | Ainda sem esqueleto de carregamento nem ação nos vazios; melhoria prevista. |
 | Layout | `.colunas`, `.principal`, `.lateral`, `.grade`, `.centro` | |

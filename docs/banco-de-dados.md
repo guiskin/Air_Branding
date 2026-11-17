@@ -1,15 +1,17 @@
 # Banco de dados (Supabase/Postgres)
 
-Fonte: `supabase/01_estrutura.sql` e `02_convites_e_exemplos.sql`. O estado real do banco de produção **não está no repositório**: antes de uma mudança, confira no painel do Supabase o que já foi aplicado.
+Os scripts numerados estão em `supabase/`. O registro de aplicação está em `supabase/APLICADO.md`. Antes de uma mudança, confira no painel do Supabase quais scripts foram aplicados e o estado atual dos objetos afetados.
 
 ## Tabelas
 
 | Tabela | Conteúdo | Observações |
 |---|---|---|
 | `convites` | e-mail, nome, área, perfil | Lista de quem pode criar conta. |
-| `pessoas` | usuários (id = `auth.users.id`) | Criada pelo gatilho. `capacidade_mensal` (padrão 168) ainda não é usada na interface. |
+| `pessoas` | usuários (id = `auth.users.id`) | Criada pelo gatilho. O `03` adiciona `ativo`. O `04` adiciona `foto_caminho` opcional. |
 | `clientes` | nome único | |
 | `projetos` | cliente, `codigo` único, nome, linha, `horas_vendidas`, `ativo` | `on delete restrict` no cliente. |
+| `equipes`, `equipe_membros` | cadastro de equipes e pessoas | O nome é único sem distinção entre maiúsculas e minúsculas. |
+| `projeto_equipes`, `projeto_equipe_membros` | equipe escolhida e integrantes copiados para o projeto | A troca da equipe atualiza a cópia em uma única transação. |
 | `entregas` | projeto, título, briefing, `link_drive`, status, início, prazo, prioridade, `horas_estimadas` | `check` nos oito status e em prioridade (baixa, normal, alta). |
 | `entrega_responsaveis` | entrega x pessoa | Chave composta. |
 | `etapas` | entrega, `ordem`, nome, pessoa, `concluida`, `concluida_em` | |
@@ -25,39 +27,52 @@ Exclusões em cascata: apagar entrega remove etapas, responsáveis e comentário
 
 ## Funções e permissões (RLS)
 
-`eh_membro()`: existe linha em `pessoas` para o usuário. `eh_gestor()`: perfil `admin` ou `coordenacao`. RLS ligada em todas as tabelas.
+Com o `03`, `eh_membro()` exige uma pessoa ativa, `eh_gestor()` exige também perfil `admin` ou `coordenacao`, e `eh_admin()` exige perfil `admin`. As tabelas têm RLS.
 
 | Tabela | Ver | Criar | Editar | Apagar |
 |---|---|---|---|---|
-| convites | gestor | gestor | gestor | gestor |
-| pessoas | membro | (gatilho) | gestor | n/d |
+| convites | gestor | gestor, com perfil admin reservado ao admin | gestor, com perfil admin reservado ao admin | gestor, com perfil admin reservado ao admin |
+| pessoas | membro | (gatilho) | gestor, com perfil admin reservado ao admin. Com o `04`, cada pessoa também edita seu nome e foto por funções específicas. | n/d |
 | clientes, projetos | membro | gestor | gestor | n/d |
 | entregas | membro | membro | membro | gestor |
 | entrega_responsaveis | membro | membro | n/d | membro |
 | etapas | membro | membro | membro | n/d |
-| horas | membro | só as próprias | só as próprias | só as próprias |
+| horas | membro | só as próprias | membro ativo, só as próprias | membro ativo, só as próprias |
 | comentarios | membro | membro (autor = si) | n/d | n/d |
 | relatos | gestor ou autor | membro (autor = si) | gestor | n/d |
 
 Qualquer membro edita qualquer entrega e etapa. Se isso é intencional, está registrado em `decisoes.md`.
 
+## Configurações de perfil (migração 04)
+
+- `alterar_meu_nome(novo_nome)` edita apenas o nome da pessoa ativa da sessão. `alterar_minha_foto(novo_caminho)` vale para a mesma pessoa, exige que o objeto exista em sua pasta e retorna o caminho anterior. Um caminho nulo remove a associação.
+- O bucket privado `fotos-perfil` aceita JPEG, PNG e WebP de até 2 MiB. Cada pessoa envia arquivos novos para sua pasta identificada pelo UUID. Membros ativos podem acessar as fotos em uso, e cada pessoa pode apagar arquivos de sua pasta que estejam sem associação.
+- O banco armazena o caminho do objeto. O app usa URLs assinadas temporárias e mostra as iniciais quando o perfil está sem foto ou a imagem está indisponível. Uma URL emitida pode ser usada até expirar. A substituição usa um caminho novo e remove o arquivo anterior pela API de Storage depois de gravar a associação nova.
+- A troca de senha usa Supabase Auth. As regras do projeto de Authentication continuam valendo.
+
+Antes de aplicar o `04` no ambiente de teste, confirme que o `03` foi aplicado, que o bucket `fotos-perfil` ainda não existe e que nenhuma política existente de Storage pode conceder acesso a esse bucket. Após aplicar, confira o nome e a foto de um membro em duas contas, a substituição e remoção da foto, a rejeição de arquivos fora do formato ou limite e a ausência de acesso para pessoa desativada ou sem sessão. Confirme também que um membro segue sem acesso para editar outras pessoas, promover-se ou gravar na pasta de outro membro.
+
 ## Realtime
 
 Publicação `supabase_realtime` inclui entregas, responsáveis, etapas, horas, comentários, projetos, clientes e pessoas.
 
-## Riscos conhecidos (ainda não corrigidos)
+## Equipes reutilizáveis (migração 05)
+
+- As quatro tabelas usam RLS. Somente membros ativos podem consultá-las. A migração adiciona as quatro à publicação `supabase_realtime`.
+- `salvar_equipe` valida o nome e uma lista de pessoas ativas. `aplicar_equipe_projeto` copia os membros ativos da equipe escolhida para um projeto ativo. Um identificador de equipe nulo limpa a atribuição do projeto.
+- `criar_projeto_com_equipe` cria o projeto e aplica a equipe na mesma transação. As três funções exigem coordenação ou administração. As tabelas novas só permitem escrita por essas funções.
+- Atribuições já feitas preservam os membros copiados quando a equipe cadastrada muda. A reaplicação substitui a cópia do projeto escolhido. Responsáveis por entregas e etapas seguem gravados nas tabelas atuais.
+
+## Segurança do piloto
 
 Detalhes e plano na tarefa `tasks/001-seguranca-perfis-e-convites.md`.
 
-- **Escalada de perfil:** `pessoas_editar` e `convites_gestor` deixam coordenação se promover a admin ou convidar admins pela API.
-- **Cadastro por e-mail não verificado:** com "Confirm email" desligado, quem souber um e-mail convidado cria a conta antes da pessoa. Convites de exemplo do `02` com e-mails fictícios, se ainda existirem, são o caso mais grave.
-- **Histórico apagável:** `horas.pessoa_id`, `comentarios.autor_id` e `relatos.autor_id` usam `on delete cascade`; apagar um usuário no painel destrói o histórico.
-- **Políticas de horas:** `horas_editar` e `horas_apagar` não exigem `eh_membro()`.
-- **Armadilha:** o `grant ... on all tables` do `01` dá `update` na tabela inteira; qualquer restrição de colunas futura se perde se um script repetir esse `grant`.
+- O `03` protege a administração, restringe edição de horas a pessoas ativas, preserva o histórico de horas, comentários e relatos e concede privilégios específicos por tabela e coluna.
+- A verificação de e-mail do cadastro depende de "Confirm email" no painel do Supabase. A decisão do piloto mantém a confirmação ligada.
 
 ## Como evoluir
 
 1. Agente `analista-banco` descreve o impacto.
 2. Script novo e numerado em `supabase/` (skill `nova-migracao`), nunca editar os existentes.
-3. O usuário executa no SQL Editor do Supabase e confere.
+3. Aplicar e conferir no ambiente de teste antes de seguir a regra de produção de `.claude/rules/banco.md`.
 4. Atualizar este arquivo e as constantes de `src/dados.js`. Os valores de `STATUS`, `TIPOS` e `PERFIS` existem nos dois lugares.

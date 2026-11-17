@@ -2,6 +2,17 @@
 
 Sugestões, sem compromisso. Nada aqui é implementado sem pedido e aprovação.
 
+## Ideias do usuário (2026-11-17)
+
+Configurações (foto de perfil, senha, nome completo, fonte -1) e ajustes da tela de clientes: detalhes em `tasks/concluidas/004-ideias-configuracoes-e-clientes.md`.
+
+### Recursos inspirados no ClickUp
+
+- **Equipes reutilizáveis (implementado, script `05`).** Criar uma equipe com nome e membros e selecioná-la ao criar ou editar um projeto, para montar a equipe do projeto de uma vez. A atribuição de responsáveis por entrega continua disponível.
+- **Google Agenda.** Conectar a agenda do e-mail Google de cada pessoa e exibir seus compromissos no Air Branding ao lado dos prazos das entregas. Definir quais agendas poderão ser exibidas e se a integração também criará eventos.
+- **Google Drive e documentos do projeto.** Vincular uma pasta do Drive ao projeto. Na visão geral, destacar documentos como briefing, atas de reunião e materiais de referência. Permitir buscar pelo nome dos arquivos da pasta e abrir os resultados conforme as permissões do Drive.
+- **Painéis (implementado, ver `tasks/concluidas/006-paineis.md`).** Criar painéis com filtros de cliente, projeto, equipe e período. Aproveitar os indicadores já existentes para mostrar entregas por status, atrasos e horas lançadas em relação às estimadas.
+
 ## Escopo futuro do produto (já definido no README)
 
 - Funil comercial

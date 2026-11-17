@@ -6,7 +6,9 @@ Uma entrada por decisão: data, decisão, motivo. Mais recente no topo.
 
 - Direção escolhida pelo usuário a partir de esboços: menu lateral com clientes e projetos, lista densa agrupada por status, painel da entrega ao lado, botão Claro/Escuro sob o nome do usuário e, ao lado do projeto, linha do tempo, regras automáticas e equipe. Referências do usuário: monday, Onplana, PixStudio e Linear/Descript. Nada disso foi validado com usuários reais.
 - Plano aprovado em fases (`tasks/003-air-creative-workspace.md`). A fase 1 troca cores e estilos fixos por tokens, com tema escuro e foco visível, sem mudar o layout; as cores de status saíram de `dados.js` e foram para o CSS.
-- Linha do tempo deixa de estar em "fica para depois" **somente se** o usuário confirmar a decisão pendente 1 do plano. Regras automáticas começam informativas, sem chave de ligar e desligar. Foto de perfil depende de mudança de banco e aprovação à parte.
+- O pedido de executar as fases 1 a 4 incluiu a linha do tempo informativa de entregas abertas e as regras automáticas existentes. O Gantt interativo permanece no planejamento futuro.
+- O pedido de configurações incluiu foto de perfil enviada pela própria pessoa. A migração 04 usa um bucket privado.
+- Após comparar os exemplos, o usuário escolheu o modal central para os detalhes da entrega. No celular, o modal abre em tela inteira.
 - Plugin `frontend-design` (Anthropic) ativado no projeto para orientar as próximas fases.
 
 ## 2026-11-17: quem executa SQL

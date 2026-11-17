@@ -29,7 +29,7 @@ Oito, nesta ordem: Backlog, Aguardando material, Planejado, Em andamento, Em rev
 ## Perfis
 
 - **Membro:** vê tudo, cria e edita entregas, lança as próprias horas.
-- **Coordenação e Administrador:** além disso, cadastram clientes e projetos, convidam pessoas, leem todos os relatos e veem "Equipe e piloto" e "Precisa de atenção".
+- **Coordenação e Administrador:** além disso, cadastram clientes e projetos, criam equipes e aplicam equipes a projetos, convidam pessoas, leem todos os relatos e veem "Equipe e piloto" e "Precisa de atenção".
 
 ## Relatos
 
@@ -37,4 +37,18 @@ Qualquer membro reporta bug ou melhoria. O contexto (tela, projeto, entrega, úl
 
 ## Fora do piloto
 
-Funil comercial, carga da equipe, Gantt, relatório de projeto, importação do ClickUp, exportação para BI.
+Funil comercial, carga da equipe, Gantt interativo, relatório de projeto, importação do ClickUp, exportação para BI.
+
+## Acompanhamento do projeto
+
+- A lista agrupa entregas por status em seções recolhíveis. Os indicadores contam entregas abertas, atrasadas e concluídas e somam horas encerradas no projeto.
+- A linha do tempo mostra entregas abertas com prazo. Com início vazio, usa o dia local da criação. Se o prazo vier antes do início, mostra uma barra de um dia no prazo. As entregas abertas sem prazo aparecem no total separado.
+- A seção **Equipe do projeto** reúne os membros da equipe aplicada e os responsáveis pelas entregas e por suas etapas. Cada pessoa vê as horas encerradas que o banco permite consultar no projeto, inclusive horas sem entrega.
+- Ao aplicar uma equipe, o projeto recebe uma cópia dos membros ativos naquele momento. Mudanças na composição do cadastro passam a valer para o projeto após uma reaplicação explícita. É possível trocar ou remover a equipe de um projeto preservando os responsáveis das entregas.
+- O painel de regras descreve o comportamento de avançar etapas. A entrega aberta fecha ao trocar de tela ou de projeto.
+
+## Painéis
+
+- Membros ativos podem consultar os indicadores dos projetos que já conseguem ver. Filtros de cliente, projeto e equipe são combinados. O filtro de equipe considera a equipe aplicada ao projeto e aparece quando há equipes cadastradas.
+- O intervalo de datas inclui os dois extremos. As entregas são selecionadas pelo prazo e as horas encerradas pela data local de início. Entregas sem prazo entram quando o período está em branco. Horas sem entrega integram as horas lançadas.
+- A distribuição usa o status atual. Uma entrega continua atrasada enquanto tem prazo anterior a hoje e seu status difere de Concluído. A lista de atrasadas abre os detalhes da entrega.

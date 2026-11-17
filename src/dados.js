@@ -34,31 +34,133 @@ export const FLUXOS = [
 export const statusPorId = (id) => STATUS.find((s) => s.id === id) || STATUS[0]
 export const tipoPorId = (id) => TIPOS.find((t) => t.id === id) || TIPOS[0]
 
+const BUCKET_FOTOS = 'fotos-perfil'
+const EXTENSOES_FOTO = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }
+export const TIPOS_FOTO = Object.keys(EXTENSOES_FOTO).join(',')
+export const LIMITE_FOTO = 2 * 1024 * 1024
+
 async function ok(consulta) {
   const { data, error } = await consulta
   if (error) throw new Error(error.message)
   return data
 }
 
-export async function carregar() {
-  const [pessoas, clientes, projetos, entregas, responsaveis, etapas, horas, comentarios] = await Promise.all([
-    ok(supabase.from('pessoas').select('*').order('nome')),
-    ok(supabase.from('clientes').select('*').order('nome')),
-    ok(supabase.from('projetos').select('*').order('codigo')),
-    ok(supabase.from('entregas').select('*').order('criado_em')),
-    ok(supabase.from('entrega_responsaveis').select('*')),
-    ok(supabase.from('etapas').select('*').order('ordem')),
-    ok(supabase.from('horas').select('*').order('inicio')),
-    ok(supabase.from('comentarios').select('*').order('criado_em')),
-  ])
-  return { pessoas, clientes, projetos, entregas, responsaveis, etapas, horas, comentarios }
+async function carregarPaginado(consultar) {
+  const tamanho = 1000
+  const primeira = await consultar({ count: 'exact' }).range(0, tamanho - 1)
+  if (primeira.error) return primeira
+
+  const data = primeira.data.slice()
+  let recebidos = data.length
+  while (recebidos && (primeira.count == null ? recebidos === tamanho : data.length < primeira.count)) {
+    const pagina = await consultar().range(data.length, data.length + tamanho - 1)
+    if (pagina.error) return pagina
+    recebidos = pagina.data.length
+    data.push(...pagina.data)
+  }
+  return { data, error: null }
 }
 
-export const hoje = () => {
-  const d = new Date()
-  const p = (n) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
+async function assinarFotos(pessoas) {
+  const caminhos = [...new Set(pessoas.map((p) => p.foto_caminho).filter(Boolean))]
+  if (!caminhos.length) return pessoas
+  try {
+    const assinaturas = await ok(supabase.storage.from(BUCKET_FOTOS).createSignedUrls(caminhos, 300))
+    const urls = Object.fromEntries(assinaturas.map(({ path, signedUrl }) => [path, signedUrl]))
+    return pessoas.map((p) => ({ ...p, foto_url: urls[p.foto_caminho] || null }))
+  } catch {
+    return pessoas
+  }
 }
+
+async function carregarEquipes() {
+  const [equipes, atribuicoes] = await Promise.all([
+    carregarPaginado((opcoes) => supabase.from('equipes').select('id,nome,equipe_membros(pessoa_id)', opcoes).order('nome').order('id')),
+    carregarPaginado((opcoes) => supabase.from('projeto_equipes').select('projeto_id,equipe_id,projeto_equipe_membros(pessoa_id)', opcoes).order('projeto_id')),
+  ])
+  const erros = [equipes.error, atribuicoes.error].filter(Boolean)
+  const falha = erros.find(({ code }) => !['42P01', 'PGRST205'].includes(code))
+  if (falha) throw new Error(falha.message)
+  if (erros.length) return null
+  return { equipes: equipes.data, atribuicoes: atribuicoes.data }
+}
+
+export async function carregar() {
+  const [pessoas, clientes, projetos, entregas, responsaveis, etapas, horas, comentarios, cadastroEquipes] = await Promise.all([
+    ok(supabase.from('pessoas').select('*').order('nome')),
+    ok(carregarPaginado((opcoes) => supabase.from('clientes').select('*', opcoes).order('nome'))),
+    ok(carregarPaginado((opcoes) => supabase.from('projetos').select('*', opcoes).order('codigo'))),
+    ok(carregarPaginado((opcoes) => supabase.from('entregas').select('*', opcoes).order('criado_em').order('id'))),
+    ok(supabase.from('entrega_responsaveis').select('*')),
+    ok(supabase.from('etapas').select('*').order('ordem')),
+    ok(carregarPaginado((opcoes) => supabase.from('horas').select('*', opcoes).order('inicio').order('id'))),
+    ok(supabase.from('comentarios').select('*').order('criado_em')),
+    carregarEquipes(),
+  ])
+  return { pessoas: await assinarFotos(pessoas), clientes, projetos, entregas, responsaveis, etapas, horas, comentarios, cadastroEquipes }
+}
+
+export async function alterarMeuNome(nome) {
+  const { error } = await supabase.rpc('alterar_meu_nome', { novo_nome: nome.trim() })
+  if (error?.code === 'PGRST202') throw new Error('A edição do perfil ainda não está habilitada neste ambiente.')
+  if (error) throw new Error(error.message)
+}
+
+export function validarFoto(arquivo) {
+  if (!Object.hasOwn(EXTENSOES_FOTO, arquivo.type)) return 'Escolha uma imagem JPEG, PNG ou WebP.'
+  if (!arquivo.size || arquivo.size > LIMITE_FOTO) return 'Escolha uma imagem de até 2 MB.'
+  return ''
+}
+
+export async function alterarMinhaFoto(pessoa, arquivo) {
+  if (!Object.hasOwn(pessoa, 'foto_caminho')) {
+    throw new Error('A foto de perfil ainda não está habilitada neste ambiente.')
+  }
+
+  const bucket = supabase.storage.from(BUCKET_FOTOS)
+  let caminho = null
+  if (arquivo) {
+    const invalida = validarFoto(arquivo)
+    if (invalida) throw new Error(invalida)
+    caminho = `${pessoa.id}/${crypto.randomUUID()}.${EXTENSOES_FOTO[arquivo.type]}`
+  }
+
+  async function limparFoto(caminhoAntigo) {
+    if (!caminhoAntigo) return
+    try {
+      await bucket.remove([caminhoAntigo])
+    } catch {
+      return
+    }
+  }
+
+  if (caminho) await ok(bucket.upload(caminho, arquivo, { contentType: arquivo.type, upsert: false }))
+  const { data: anterior, error } = await supabase.rpc('alterar_minha_foto', { novo_caminho: caminho })
+  if (error) {
+    if (['P0001', '23514', '42501', 'PGRST202'].includes(error.code)) await limparFoto(caminho)
+    if (error.code === 'PGRST202') throw new Error('A foto de perfil ainda não está habilitada neste ambiente.')
+    throw new Error(error.message)
+  }
+  if (anterior !== caminho) await limparFoto(anterior)
+}
+
+export async function alterarMinhaSenha(atual, nova) {
+  const { error } = await supabase.auth.updateUser({ current_password: atual, password: nova })
+  if (!error) return
+  if (error.code === 'reauthentication_needed') throw new Error('Entre novamente na sua conta para alterar a senha.')
+  if (error.code === 'invalid_credentials') throw new Error('A senha atual está incorreta.')
+  if (error.code === 'same_password') throw new Error('A nova senha deve ser diferente da atual.')
+  if (error.code === 'weak_password') throw new Error('Escolha uma senha mais forte.')
+  throw new Error(error.message)
+}
+
+export function dataLocal(data) {
+  const mes = String(data.getMonth() + 1).padStart(2, '0')
+  const dia = String(data.getDate()).padStart(2, '0')
+  return `${data.getFullYear()}-${mes}-${dia}`
+}
+
+export const hoje = () => dataLocal(new Date())
 
 export const fmtData = (iso) => {
   if (!iso) return ''
@@ -96,6 +198,14 @@ export function montar(dados, euId) {
   const pessoaPorId = Object.fromEntries(dados.pessoas.map((p) => [p.id, p]))
   const clientePorId = Object.fromEntries(dados.clientes.map((c) => [c.id, c]))
   const projetoPorId = Object.fromEntries(dados.projetos.map((p) => [p.id, p]))
+  const equipePorId = Object.fromEntries((dados.cadastroEquipes?.equipes || []).map((equipe) => [equipe.id, equipe]))
+  const equipePorProjeto = Object.fromEntries((dados.cadastroEquipes?.atribuicoes || []).map((atribuicao) => [
+    atribuicao.projeto_id,
+    {
+      equipe: equipePorId[atribuicao.equipe_id],
+      pessoas: atribuicao.projeto_equipe_membros.map(({ pessoa_id }) => pessoaPorId[pessoa_id]).filter(Boolean),
+    },
+  ]))
   const dia = hoje()
   const entregas = dados.entregas.map((e) => {
     const etapas = dados.etapas.filter((x) => x.entrega_id === e.id).sort((a, b) => a.ordem - b.ordem)
@@ -120,12 +230,28 @@ export function montar(dados, euId) {
     }
   })
   const timer = dados.horas.find((h) => h.pessoa_id === euId && !h.fim) || null
-  return { pessoaPorId, clientePorId, projetoPorId, entregas, timer }
+  return { pessoaPorId, clientePorId, projetoPorId, equipePorProjeto, entregas, timer }
 }
 
 export const criarCliente = (nome) => ok(supabase.from('clientes').insert({ nome }))
 
-export const criarProjeto = (p) => ok(supabase.from('projetos').insert(p))
+export function criarProjeto(projeto, equipeId) {
+  if (!equipeId) return ok(supabase.from('projetos').insert(projeto))
+  return ok(supabase.rpc('criar_projeto_com_equipe', {
+    cliente: projeto.cliente_id,
+    codigo: projeto.codigo,
+    nome: projeto.nome,
+    linha: projeto.linha,
+    horas: projeto.horas_vendidas,
+    equipe: equipeId,
+  }))
+}
+
+export const salvarEquipe = (equipeId, nome, membros) =>
+  ok(supabase.rpc('salvar_equipe', { equipe: equipeId, novo_nome: nome.trim(), membros }))
+
+export const aplicarEquipe = (projetoId, equipeId) =>
+  ok(supabase.rpc('aplicar_equipe_projeto', { projeto: projetoId, equipe: equipeId || null }))
 
 export async function criarEntrega({ projeto_id, titulo, briefing, link_drive, prazo, horas_estimadas, fluxo, quem, euId }) {
   const [entrega] = await ok(

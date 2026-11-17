@@ -1,6 +1,6 @@
 # 003: Air Creative Workspace (menu lateral, tema claro/escuro e painéis do projeto)
 
-- **Status:** aprovada pelo usuário no chat em 2026-11-17. Fase 1 publicada na `main`; fase 2 implementada (aguarda revisão e merge); fases 3 a 5 não iniciadas.
+- **Status:** fases 1 e 2 na `main`. Fases 3 e 4 implementadas na branch de trabalho. Foto de perfil entrou no pedido registrado na tarefa 004.
 - **Branch:** uma por fase: `feat/ux-1-fundacao`, `feat/ux-2-menu-lateral`, `feat/ux-3-projeto`, `feat/ux-4-coluna-lateral`, `feat/ux-5-foto` (fase 5 só se aprovada)
 
 ## Objetivo
@@ -28,7 +28,7 @@ Referências aprovadas no chat: esboço "D3" (menu lateral, lista agrupada, colu
 - Lista de entregas em colunas (entrega, quem, prazo, status), agrupada por status e recolhível, com horas e etapa atual sob o título.
 - Faixa de indicadores com dados já calculados: abertas, atrasadas, horas lançadas, % concluído.
 - Visão Quadro mantida (sem arrastar).
-- Painel da entrega como gaveta lateral no computador e folha de baixo no celular (corrige o painel que hoje cai abaixo da lista). Fecha com Esc e com o botão; foco entra no painel e volta à linha ao fechar.
+- Detalhes em modal central no computador e em tela inteira no celular. Fecha com Esc ou pelo botão Fechar, preserva a posição da lista e devolve o foco ao acionador.
 
 **Fase 4: coluna ao lado do projeto**
 - **Equipe do projeto:** pessoas com entregas no projeto, área e horas lançadas por pessoa. Iniciais no lugar da foto.
@@ -59,7 +59,7 @@ Login e primeiro acesso; Meu dia (com "Hora sem tarefa" e tipo de hora); Projeto
 - `src/estilos.css` (tokens, componentes, tema escuro, responsivo).
 - `src/App.jsx` (estrutura: menu lateral, barra superior, tema, gaveta no celular; `Login` ganha só os tokens).
 - `src/telas.jsx` (lista agrupada, indicadores, coluna lateral).
-- `src/Painel.jsx` (gaveta e folha de baixo; remoção das cores fixas).
+- `src/Painel.jsx` (campos e conversa do modal de detalhes; remoção das cores fixas).
 - `src/pecas.jsx` (status em ponto, avatar, novos componentes de painel).
 - `src/dados.js` apenas para funções puras de derivação (equipe do projeto, intervalo da linha do tempo), sem novas consultas.
 - `docs/design-system.md` (novo), `docs/arquitetura.md`, `docs/regras-de-negocio.md`, `docs/decisoes.md`, `CLAUDE.md`, `README.md`.
@@ -123,7 +123,7 @@ Valem para todas as fases, depois os específicos de cada uma.
 **Fase 3**
 - [ ] Lista do projeto agrupada por status, recolhível, com entrega, quem, prazo e status; atrasada em destaque.
 - [ ] Faixa de indicadores confere com os números do card do projeto em Projetos (abertas, atrasadas, horas, % concluído).
-- [ ] Clicar em uma entrega abre o painel ao lado no computador e como folha de baixo em 375 px, já visível sem rolar; fechar devolve o foco à linha.
+- [x] Clicar em uma entrega abre um modal central no computador e em tela inteira a 375 px. Fechar devolve o foco à linha e preserva a rolagem.
 - [ ] Mudar status, concluir etapa, iniciar e parar timer funcionam dentro do painel.
 
 **Fase 4**
@@ -138,6 +138,15 @@ Valem para todas as fases, depois os específicos de cada uma.
 - [ ] Foto aparece no menu e na equipe; sem foto, aparecem as iniciais.
 
 ## Resumo do que mudou
+
+### Fases 3 e 4
+
+- Lista de entregas recolhível por status, indicadores do projeto e visão Quadro mantida.
+- Linha do tempo das entregas abertas, regras automáticas existentes e equipe com horas por pessoa.
+- Seleção destacada na lista, no Quadro e na linha do tempo. Esc fecha os detalhes e devolve o foco. Sair da tela ou trocar de projeto também fecha os detalhes.
+- Modal central escolhido pelo usuário, com a conversa ao lado dos detalhes em telas largas e abaixo em telas estreitas.
+- Verificado com dados simulados: abertura pelo teclado, posição da lista e foco preservados ao fechar, aviso de erro e relato sobre a entrega, modal em tela inteira a 375 px.
+- Verificado com dados simulados: seleção, comentário, fechamento por teclado e navegação, e empilhamento sem rolagem horizontal a 375 px. Validação das datas da linha do tempo no fuso de São Paulo passou. Teste autenticado no Supabase pendente.
 
 ### Fase 2 (branch `feat/ux-2-menu-lateral`)
 

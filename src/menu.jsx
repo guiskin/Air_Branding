@@ -20,7 +20,7 @@ export function Icone({ nome }) {
   )
 }
 
-export function Menu({ app, tela, projetoId, tema, setTema, aberto, fechar, sair }) {
+export function Menu({ app, tela, projetoId, tema, setTema, aberto, fechar, aoCadastrarCliente, sair }) {
   const { dados, eu, gestor, ir } = app
   const [escolhidos, setEscolhidos] = useState({})
   const no = useRef(null)
@@ -30,19 +30,18 @@ export function Menu({ app, tela, projetoId, tema, setTema, aberto, fechar, sair
   const itens = [
     ['dia', 'Meu dia'],
     ['projetos', 'Projetos'],
+    ['paineis', 'Painéis'],
   ]
   if (gestor) itens.push(['equipe', 'Equipe e piloto'])
-  const clientes = dados.clientes
-    .map((c) => ({ ...c, projetos: dados.projetos.filter((p) => p.cliente_id === c.id && p.ativo) }))
-    .filter((c) => c.projetos.length > 0)
+  const clientes = dados.clientes.map((c) => ({ ...c, projetos: dados.projetos.filter((p) => p.cliente_id === c.id && p.ativo) }))
 
   // Gaveta no celular: foco entra no menu, Tab não escapa dele e Esc fecha.
   useEffect(() => {
     if (!aberto) return undefined
     const focaveis = () => [...no.current.querySelectorAll('button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])')]
-    const lista = focaveis()
-    if (lista.length) lista[0].focus()
+    const quadro = requestAnimationFrame(() => focaveis()[0]?.focus())
     const aoTeclar = (ev) => {
+      if (!no.current.contains(ev.target)) return
       if (ev.key === 'Escape') {
         fechar(true)
         return
@@ -61,7 +60,10 @@ export function Menu({ app, tela, projetoId, tema, setTema, aberto, fechar, sair
       }
     }
     document.addEventListener('keydown', aoTeclar)
-    return () => document.removeEventListener('keydown', aoTeclar)
+    return () => {
+      cancelAnimationFrame(quadro)
+      document.removeEventListener('keydown', aoTeclar)
+    }
   }, [aberto, fechar])
 
   return (
@@ -84,8 +86,11 @@ export function Menu({ app, tela, projetoId, tema, setTema, aberto, fechar, sair
           </ul>
         </nav>
         <nav aria-label="Clientes e projetos">
-          <p className="menu-titulo">Clientes</p>
-          {clientes.length === 0 && <p className="menu-vazio pequeno suave">Nenhum projeto ativo ainda.</p>}
+          <div className="fila entre menu-clientes">
+            <p className="menu-titulo">Clientes</p>
+            {gestor && <button type="button" className="botao menu-adicionar" aria-label="Cadastrar cliente" onClick={aoCadastrarCliente}>+</button>}
+          </div>
+          {clientes.length === 0 && <p className="menu-vazio pequeno suave">Nenhum cliente cadastrado.</p>}
           <ul className="menu-lista">
             {clientes.map((c) => {
               const aberta = expandido(c.id)
@@ -97,6 +102,7 @@ export function Menu({ app, tela, projetoId, tema, setTema, aberto, fechar, sair
                   </button>
                   {aberta && (
                     <ul className="menu-lista">
+                      {c.projetos.length === 0 && <li className="menu-vazio pequeno suave">Nenhum projeto ativo.</li>}
                       {c.projetos.map((p) => {
                         const ativo = tela === 'projeto' && projetoId === p.id
                         return (
@@ -133,6 +139,9 @@ export function Menu({ app, tela, projetoId, tema, setTema, aberto, fechar, sair
               Escuro
             </button>
           </div>
+          <button type="button" className={`menu-item ${tela === 'configuracoes' ? 'ativo' : ''}`} aria-current={tela === 'configuracoes' ? 'page' : undefined} onClick={() => ir('configuracoes')}>
+            Configurações
+          </button>
           <button type="button" className="botao" onClick={sair}>
             Sair
           </button>

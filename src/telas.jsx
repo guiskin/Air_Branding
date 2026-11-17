@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import * as D from './dados'
 import { Avatares, Barra, Etiqueta, SeletorStatus, relogio, textoEtapa, textoPrazo } from './pecas'
+import { IndicadoresProjeto, PaineisProjeto } from './paineis-projeto'
+import { CadastroEquipes, SeletorEquipe } from './EquipesProjeto'
 
 function BotaoTimer({ app, entrega }) {
   const rodando = app.m.timer && app.m.timer.entrega_id === entrega.id
@@ -22,9 +24,12 @@ function BotaoTimer({ app, entrega }) {
 }
 
 function LinhaEntrega({ app, entrega, comProjeto = true, comTimer = true }) {
+  const selecionada = app.entregaId === entrega.id
+  const classe = `linha${comProjeto ? '' : ' linha-projeto'}${selecionada ? ' entrega-selecionada' : ''}`
+  const timer = comTimer ? <BotaoTimer app={app} entrega={entrega} /> : null
   return (
-    <div className="linha">
-      <button className="linha-titulo" onClick={() => app.abrir(entrega.id)}>
+    <div className={classe}>
+      <button className="linha-titulo" aria-expanded={selecionada} onClick={() => app.abrir(entrega.id)}>
         <strong>{entrega.titulo}</strong>
         {comProjeto && entrega.projeto && (
           <span>
@@ -33,15 +38,27 @@ function LinhaEntrega({ app, entrega, comProjeto = true, comTimer = true }) {
           </span>
         )}
         <span>{textoEtapa(entrega, app.m.pessoaPorId)}</span>
+        {!comProjeto && (
+          <span>
+            {D.fmtMin(entrega.minutos)} lançadas{entrega.horas_estimadas ? ` de ${entrega.horas_estimadas}h` : ''}
+          </span>
+        )}
       </button>
-      <Avatares pessoas={entrega.responsaveis} />
+      <div className={comProjeto ? undefined : 'linha-responsaveis'}>
+        <Avatares pessoas={entrega.responsaveis} />
+      </div>
       <span className={`pequeno ${entrega.atrasada ? 'perigo forte' : 'suave'}`}>{textoPrazo(entrega)}</span>
-      <span className="pequeno suave">
-        {D.fmtMin(entrega.minutos)}
-        {entrega.horas_estimadas ? ` de ${entrega.horas_estimadas}h` : ''}
-      </span>
-      {comTimer && <BotaoTimer app={app} entrega={entrega} />}
-      <SeletorStatus valor={entrega.status} aoMudar={(v) => app.agir(`Mudar status de "${entrega.titulo}" para ${v}`, () => D.atualizarEntrega(entrega.id, { status: v }))} />
+      {comProjeto && (
+        <span className="pequeno suave">
+          {D.fmtMin(entrega.minutos)}
+          {entrega.horas_estimadas ? ` de ${entrega.horas_estimadas}h` : ''}
+        </span>
+      )}
+      <div className={comProjeto ? 'linha-controles-dia' : 'linha-controles-projeto'}>
+        {comProjeto && timer}
+        <SeletorStatus valor={entrega.status} aoMudar={(v) => app.agir(`Mudar status de "${entrega.titulo}" para ${v}`, () => D.atualizarEntrega(entrega.id, { status: v }))} />
+        {!comProjeto && timer}
+      </div>
     </div>
   )
 }
@@ -127,25 +144,28 @@ function resumoProjeto(app, projeto) {
   const entregas = app.m.entregas.filter((e) => e.projeto_id === projeto.id)
   const feitas = entregas.filter((e) => e.status === 'concluido').length
   const atrasadas = entregas.filter((e) => e.atrasada).length
-  const pessoas = []
-  entregas.forEach((e) => e.responsaveis.forEach((p) => !pessoas.includes(p) && pessoas.push(p)))
+  const pessoas = [...new Set([
+    ...(app.m.equipePorProjeto[projeto.id]?.pessoas || []),
+    ...entregas.flatMap((e) => e.responsaveis),
+  ])]
   const minutos = app.dados.horas.filter((h) => h.projeto_id === projeto.id && h.fim).reduce((a, h) => a + h.minutos, 0)
   return { entregas, feitas, atrasadas, pessoas, minutos, pct: entregas.length ? (feitas / entregas.length) * 100 : 0 }
 }
 
 export function Projetos({ app }) {
-  const [cliente, setCliente] = useState('')
-  const [novo, setNovo] = useState({ cliente_id: '', codigo: '', nome: '', linha: '', horas_vendidas: '' })
+  const projetoVazio = { cliente_id: '', codigo: '', nome: '', linha: '', horas_vendidas: '', equipe_id: '' }
+  const [novo, setNovo] = useState(projetoVazio)
+  const [criandoProjeto, setCriandoProjeto] = useState(false)
+  const equipes = app.dados.cadastroEquipes?.equipes || []
   const clienteEscolhido = novo.cliente_id || (app.dados.clientes[0] ? app.dados.clientes[0].id : '')
   const criarProjeto = async () => {
+    if (criandoProjeto) return
+    setCriandoProjeto(true)
     const feito = await app.agir(`Criar projeto ${novo.codigo}`, () =>
-      D.criarProjeto({ cliente_id: clienteEscolhido, codigo: novo.codigo.trim(), nome: novo.nome.trim(), linha: novo.linha.trim(), horas_vendidas: Number(novo.horas_vendidas) || 0 }),
+      D.criarProjeto({ cliente_id: clienteEscolhido, codigo: novo.codigo.trim(), nome: novo.nome.trim(), linha: novo.linha.trim(), horas_vendidas: Number(novo.horas_vendidas) || 0 }, novo.equipe_id),
     )
-    if (feito !== undefined) setNovo({ cliente_id: '', codigo: '', nome: '', linha: '', horas_vendidas: '' })
-  }
-  const criarCliente = async () => {
-    const feito = await app.agir(`Criar cliente ${cliente}`, () => D.criarCliente(cliente.trim()))
-    if (feito !== undefined) setCliente('')
+    setCriandoProjeto(false)
+    if (feito !== undefined) setNovo(projetoVazio)
   }
   return (
     <div className="pilha larga">
@@ -197,16 +217,7 @@ export function Projetos({ app }) {
       })}
       {app.gestor && (
         <section className="cartao pilha">
-          <h2>Cadastrar</h2>
-          <div className="fila fim">
-            <label className="campo cresce" htmlFor="novo-cliente">
-              <span>Novo cliente</span>
-              <input id="novo-cliente" className="entrada" value={cliente} onChange={(e) => setCliente(e.target.value)} placeholder="Nome do cliente" />
-            </label>
-            <button className="botao" disabled={!cliente.trim()} onClick={criarCliente}>
-              Criar cliente
-            </button>
-          </div>
+          <h2>Cadastrar projeto</h2>
           <div className="grade">
             <label className="campo" htmlFor="np-cliente">
               <span>Cliente do projeto</span>
@@ -234,9 +245,12 @@ export function Projetos({ app }) {
               <span>Horas vendidas</span>
               <input id="np-horas" className="entrada" type="number" min="0" value={novo.horas_vendidas} onChange={(e) => setNovo({ ...novo, horas_vendidas: e.target.value })} />
             </label>
+            {equipes.length > 0 && (
+              <SeletorEquipe id="np-equipe" equipes={equipes} valor={novo.equipe_id} aoMudar={(equipe_id) => setNovo({ ...novo, equipe_id })} desabilitado={criandoProjeto} />
+            )}
           </div>
           <div>
-            <button className="botao primario" disabled={!clienteEscolhido || !novo.codigo.trim() || !novo.nome.trim()} onClick={criarProjeto}>
+            <button className="botao primario" disabled={criandoProjeto || !clienteEscolhido || !novo.codigo.trim() || !novo.nome.trim()} onClick={criarProjeto}>
               Criar projeto
             </button>
           </div>
@@ -248,9 +262,19 @@ export function Projetos({ app }) {
 
 function NovaEntrega({ app, projeto, aoFechar }) {
   const [f, setF] = useState({ titulo: '', briefing: '', link_drive: '', prazo: '', horas_estimadas: '', fluxo: 'cda', quem: app.eu.id })
+  const montada = useRef(false)
+  const [criando, setCriando] = useState(false)
+  useEffect(() => {
+    montada.current = true
+    return () => { montada.current = false }
+  }, [])
   const muda = (k) => (e) => setF({ ...f, [k]: e.target.value })
   const criar = async () => {
+    if (criando) return
+    setCriando(true)
     const entrega = await app.agir(`Criar entrega "${f.titulo}"`, () => D.criarEntrega({ ...f, titulo: f.titulo.trim(), projeto_id: projeto.id, euId: app.eu.id }))
+    if (!montada.current) return
+    setCriando(false)
     if (entrega) {
       aoFechar()
       app.abrir(entrega.id)
@@ -302,7 +326,7 @@ function NovaEntrega({ app, projeto, aoFechar }) {
         <input id="ne-link" className="entrada" value={f.link_drive} onChange={muda('link_drive')} placeholder="Cole o link da pasta" />
       </label>
       <div className="fila">
-        <button className="botao primario" disabled={!f.titulo.trim()} onClick={criar}>
+        <button className="botao primario" disabled={!f.titulo.trim() || criando} onClick={criar}>
           Criar entrega
         </button>
         <button className="botao" onClick={aoFechar}>
@@ -350,80 +374,80 @@ export function Projeto({ app, projetoId }) {
               {projeto.linha ? `, ${projeto.linha}` : ''}
             </p>
             <h1>{projeto.nome}</h1>
-            <p className="pequeno suave">
-              {r.feitas} de {r.entregas.length} entregas concluídas. {D.fmtMin(r.minutos)} lançadas
-              {Number(projeto.horas_vendidas) ? ` de ${Number(projeto.horas_vendidas)}h vendidas` : ''}.
-            </p>
-            <div className="largura-barra">
-              <Barra pct={r.pct} rotulo="concluído" />
-            </div>
           </div>
-          <div className="fila">
-            <button className={`botao ${visao === 'lista' ? 'escuro' : ''}`} onClick={() => setVisao('lista')}>
+          <div className="fila" role="group" aria-label="Visualização das entregas">
+            <button className={`botao ${visao === 'lista' ? 'escuro' : ''}`} aria-pressed={visao === 'lista'} onClick={() => setVisao('lista')}>
               Lista
             </button>
-            <button className={`botao ${visao === 'quadro' ? 'escuro' : ''}`} onClick={() => setVisao('quadro')}>
+            <button className={`botao ${visao === 'quadro' ? 'escuro' : ''}`} aria-pressed={visao === 'quadro'} onClick={() => setVisao('quadro')}>
               Quadro
             </button>
-            <button className="botao primario" onClick={() => setCriando(true)}>
+            <button className="botao primario" aria-expanded={criando} onClick={() => setCriando(true)}>
               Nova entrega
             </button>
           </div>
         </div>
-        <p className="pequeno suave">Horas por tipo: {porTipo.map((t) => `${t.nome} ${D.fmtMin(t.minutos)}`).join(', ')}.</p>
+        <IndicadoresProjeto resumo={r} vendidas={Number(projeto.horas_vendidas)} porTipo={porTipo} />
       </div>
       {criando && <NovaEntrega app={app} projeto={projeto} aoFechar={() => setCriando(false)} />}
-      {r.entregas.length === 0 && !criando && <p className="cartao">Nenhuma entrega neste projeto ainda. Use "Nova entrega" para começar.</p>}
-      {visao === 'lista' &&
-        D.STATUS.map((s) => {
-          const lista = r.entregas.filter((e) => e.status === s.id)
-          if (!lista.length) return null
-          const estimado = lista.reduce((a, e) => a + Number(e.horas_estimadas || 0), 0)
-          return (
-            <section key={s.id} className="cartao">
-              <div className="fila entre cabeca-grupo">
-                <Etiqueta status={s.id} />
-                <span className="pequeno suave">
-                  {lista.length === 1 ? '1 entrega' : `${lista.length} entregas`}, {D.fmtMin(lista.reduce((a, e) => a + e.minutos, 0))} lançadas
-                  {estimado ? ` de ${estimado}h` : ''}
-                </span>
-              </div>
-              {lista.map((e) => (
-                <LinhaEntrega key={e.id} app={app} entrega={e} comProjeto={false} />
-              ))}
-            </section>
-          )
-        })}
-      {visao === 'quadro' && (
-        <div className="quadro-rolagem">
-          <div className="quadro">
-            {D.STATUS.map((s) => {
-              const lista = r.entregas.filter((e) => e.status === s.id)
-              return (
-                <div key={s.id} className="coluna">
-                  <div className={`coluna-topo status-${s.id}`}>
-                    <span>{s.nome}</span>
-                    <span>{lista.length}</span>
-                  </div>
-                  {lista.map((e) => (
-                    <div key={e.id} className="cartao-quadro">
-                      <button className="linha-titulo" onClick={() => app.abrir(e.id)}>
-                        <strong>{e.titulo}</strong>
-                        <span>{textoEtapa(e, app.m.pessoaPorId)}</span>
-                      </button>
-                      <div className="fila entre">
-                        <Avatares pessoas={e.responsaveis} />
-                        <span className={`pequeno ${e.atrasada ? 'perigo forte' : 'suave'}`}>{textoPrazo(e)}</span>
-                      </div>
-                      <SeletorStatus valor={e.status} aoMudar={(v) => mudarStatus(e, v)} rotulo="Mover entrega para" neutro />
-                    </div>
-                  ))}
+      <div className="projeto-corpo">
+        <div className="projeto-entregas pilha">
+          {r.entregas.length === 0 && !criando && <p className="cartao">Nenhuma entrega neste projeto ainda. Use "Nova entrega" para começar.</p>}
+          {visao === 'lista' && D.STATUS.map((s) => {
+            const lista = r.entregas.filter((e) => e.status === s.id)
+            if (!lista.length) return null
+            const estimado = lista.reduce((a, e) => a + Number(e.horas_estimadas || 0), 0)
+            return (
+              <details key={s.id} className="cartao grupo-entregas" open>
+                <summary>
+                  <Etiqueta status={s.id} />
+                  <span className="pequeno suave grupo-total">
+                    {lista.length === 1 ? '1 entrega' : `${lista.length} entregas`}, {D.fmtMin(lista.reduce((a, e) => a + e.minutos, 0))} lançadas
+                    {estimado ? ` de ${estimado}h` : ''}
+                  </span>
+                </summary>
+                <div className="linha-projeto colunas-entregas pequeno forte suave" aria-hidden="true">
+                  <span>Entrega</span><span>Quem</span><span>Prazo</span><span>Status</span>
                 </div>
-              )
-            })}
-          </div>
+                {lista.map((e) => (
+                  <LinhaEntrega key={e.id} app={app} entrega={e} comProjeto={false} />
+                ))}
+              </details>
+            )
+          })}
+          {visao === 'quadro' && (
+            <div className="quadro-rolagem">
+              <div className="quadro">
+                {D.STATUS.map((s) => {
+                  const lista = r.entregas.filter((e) => e.status === s.id)
+                  return (
+                    <div key={s.id} className="coluna">
+                      <div className={`coluna-topo status-${s.id}`}>
+                        <span>{s.nome}</span>
+                        <span>{lista.length}</span>
+                      </div>
+                      {lista.map((e) => (
+                        <div key={e.id} className={`cartao-quadro${app.entregaId === e.id ? ' entrega-selecionada' : ''}`}>
+                          <button className="linha-titulo" aria-expanded={app.entregaId === e.id} onClick={() => app.abrir(e.id)}>
+                            <strong>{e.titulo}</strong>
+                            <span>{textoEtapa(e, app.m.pessoaPorId)}</span>
+                          </button>
+                          <div className="fila entre">
+                            <Avatares pessoas={e.responsaveis} />
+                            <span className={`pequeno ${e.atrasada ? 'perigo forte' : 'suave'}`}>{textoPrazo(e)}</span>
+                          </div>
+                          <SeletorStatus valor={e.status} aoMudar={(v) => mudarStatus(e, v)} rotulo="Mover entrega para" neutro />
+                        </div>
+                      ))}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
         </div>
-      )}
+        <PaineisProjeto app={app} projetoId={projeto.id} entregas={r.entregas} horas={horasProjeto} />
+      </div>
     </div>
   )
 }
@@ -459,6 +483,7 @@ export function Equipe({ app }) {
         <h1>Equipe e piloto</h1>
         <p className="suave">Quem já entrou, quem está convidado e os relatos enviados pelos testadores.</p>
       </div>
+      {app.gestor && <CadastroEquipes app={app} />}
       <section className="cartao">
         <h2>Pessoas e horas do mês</h2>
         {app.dados.pessoas.map((p) => {

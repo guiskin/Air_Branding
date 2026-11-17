@@ -1,18 +1,37 @@
 # Scripts aplicados em produção
 
-Registro do que já foi executado no SQL Editor do Supabase. O repositório não consegue saber isso sozinho: **só o usuário atualiza a coluna "Aplicado em"**, depois de executar o script.
+Registro do que já foi executado no SQL Editor do Supabase. Quem aplica o script registra a data depois de confirmar a execução em produção.
 
 | Script | O que faz | Aplicado em | Observação |
 |---|---|---|---|
 | `01_estrutura.sql` | Estrutura, RLS, gatilho de convite, realtime | 2026-11-16 (noite, horário de Brasília) | Informado pelo usuário. Políticas de `pessoas` e `convites` conferidas: batem com o script. |
 | `02_convites_e_exemplos.sql` | Convites dos administradores e dados de exemplo | 2026-11-16 (noite, horário de Brasília) | Convites conferidos: só existe o convite do administrador real, sem e-mails fictícios. |
 | `03_perfil_admin_e_desativar_pessoa.sql` | Perfil admin protegido, `pessoas.ativo`, `restrict` no histórico, privilégios mínimos | 2026-11-17 | Testado antes no projeto de teste (35 testes de comportamento e 22 operações do app, todos como esperado; ver o fim de `tasks/001-roteiro-de-aplicacao.md`). Aplicado no banco real por Claude, pelo conector do Supabase, com aprovação explícita do usuário; script executado inteiro com `begin`/`commit`, sem erro. Conferido depois: ver "Estado do banco após o 03". |
+| `04_configuracoes_de_perfil.sql` | Nome próprio editável e fotos de perfil em bucket privado | 2026-11-17 | Validado por SQL em `airbranding-teste` e aplicado no banco real com autorização explícita do usuário. Ver "Estado do banco após o 04". |
+| `05_equipes_em_projetos.sql` | Cadastro de equipes e cópia dos integrantes para projetos | 2026-11-17 | Validado antes em `airbranding-teste`, revisado pelo `analista-banco` e pelo `revisor`, estado "antes" conferido e aplicado no banco real com aprovação explícita do usuário, inteiro com `begin`/`commit`. Ver "Estado do banco após o 05". |
 
-Nenhum outro script foi executado no banco real. Próximo número livre: `04`.
+Nenhum outro script foi executado no banco real. Próximo número livre: `06`.
 
 ## Projeto de teste
 
-Existe um segundo projeto gratuito, `airbranding-teste`, criado em 2026-11-17 na mesma organização, só para testar scripts antes do banco real. Tem o `01`, uma versão fictícia do `02` (pessoas de teste com e-mails `.test`) e o `03`. Seus dados são descartáveis. Para repetir um teste do zero, apague as tabelas e reaplique em ordem.
+Existe um segundo projeto gratuito, `airbranding-teste`, criado em 2026-11-17 na mesma organização, só para testar scripts antes do banco real. Tem o `01`, uma versão fictícia do `02` (pessoas de teste com e-mails `.test`), o `03`, o `04` e o `05`. Seus dados são descartáveis. Para repetir um teste do zero, apague as tabelas e reaplique em ordem.
+
+Na validação do `04`, a sessão simulada de um membro alterou o próprio nome e associou, substituiu e removeu a foto. A segunda conta teve acesso à foto em uso. Os testes confirmaram o bloqueio de nome vazio, gravação em pasta alheia, associação de foto alheia e execução das funções sem login. A transação de teste foi revertida após as verificações. O bucket permaneceu privado, com limite de 2 MiB e formatos JPEG, PNG e WebP.
+
+Na validação do `05`, sessões simuladas conferiram cadastro, edição, cópia de membros para projetos novos e existentes, reaplicação e remoção da equipe. A criação com equipe inválida foi revertida sem deixar projeto parcial. Membros ativos conseguiram ler as atribuições, as escritas indevidas foram bloqueadas e as quatro tabelas estavam na publicação Realtime. A transação de teste foi revertida após as verificações.
+
+## Estado do banco após o 05 (2026-11-17)
+
+- Antes: nenhuma das quatro tabelas de equipes existia, 03 e gatilho `pessoas_proteger` presentes, publicação Realtime não era `all tables`, 11 pessoas, 3 projetos, 2 entregas, 5 etapas, 1 lançamento de horas.
+- Depois: as quatro tabelas existem com RLS ligada e só a política de leitura; `authenticated` tem somente `select`, `anon` nada. As três funções são executáveis só por `authenticated` (e checam `eh_gestor()`). As quatro tabelas estão no Realtime. Contagens existentes iguais às de antes.
+- Não verificado no real: criar e aplicar equipe pela interface publicada (exige gestor logado).
+
+## Estado do banco após o 04 (2026-11-17)
+
+- Antes da execução, foram confirmados o gatilho da migração 03, a RLS do Storage, os privilégios restritos de `pessoas` e a ausência de políticas e buckets no Storage.
+- Após o `commit`, as funções `alterar_meu_nome` e `alterar_minha_foto` estavam disponíveis para `authenticated` e bloqueadas para `anon`. A coluna `foto_caminho` estava presente, sem permissão de edição direta pelo papel `authenticated`.
+- Os 11 perfis existentes foram preservados, todos ainda sem foto associada. O bucket `fotos-perfil` estava privado, com quatro políticas, limite de 2 MiB e formatos JPEG, PNG e WebP.
+- O envio de arquivo pela interface publicada ainda precisa ser validado.
 
 ## Estado do banco após o 03 (2026-11-17)
 
