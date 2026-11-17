@@ -2,6 +2,14 @@
 
 Uma entrada por decisão: data, decisão, motivo. Mais recente no topo.
 
+## 2026-11-17: quem executa SQL
+
+- Decisão do usuário: depois de testar no projeto de teste (`airbranding-teste`), Claude pode aplicar sozinho, pelo conector do Supabase, scripts numerados no banco real, com revisão, estado "antes" conferido e reversão no cabeçalho.
+- Continuam exigindo aprovação explícita: `drop` de tabela ou coluna, `truncate`, `delete` ou `update` em massa, perda de dados, mudança de Authentication ou do projeto, criar ou apagar projetos, e SQL de escrita fora de script numerado.
+- Push, merge na `main` e deploy continuam do usuário.
+- Motivo: o usuário quer que o fluxo de banco funcione sem depender dele a cada passo; o projeto de teste reduz o risco enquanto o plano gratuito não tem backup. Primeira aplicação seguindo o fluxo: script 03 (2026-11-17).
+- Regra completa em `.claude/rules/banco.md`.
+
 ## 2026-11-16: decisões da tarefa 001 (segurança de perfis, convites e desativação)
 
 Tomadas pelo usuário. Detalhes e critérios de aceite em `tasks/001-seguranca-perfis-e-convites.md`.
