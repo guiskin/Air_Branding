@@ -26,7 +26,7 @@ Piloto da ferramenta própria de gestão de projetos da Air Branding. Vite + Rea
 
 ## Regras de trabalho
 
-- **Push é do usuário.** Cada push na `main` publica no Cloudflare Pages. Nunca faça push, merge na `main`, deploy nem execute SQL em produção; commite e pare. Operação destrutiva (apagar dados, `reset --hard`, `--force`) só com aprovação explícita.
+- **Publicação:** cada push na `main` publica no Cloudflare Pages. Pode commitar, mergear e fazer push quando o usuário pedir ou o fluxo da tarefa levar a isso; antes de mergear na `main`, confirme que `npm run build` passa. Não execute SQL em produção (quem roda no Supabase é o usuário). Operação destrutiva (apagar dados, `reset --hard`, `--force`) só com aprovação explícita.
 - **Branches:** `main` é produção. Trabalhe em `feat/…`, `fix/…` ou `docs/…`. Worktree só para tarefas em paralelo (cada uma precisa de `npm install` e `.env` próprios; o projeto está no OneDrive, então use com moderação).
 - **Git sem identidade nesta máquina.** Commite com `git -c user.name="Guilherme Ueno" -c user.email="gui.ueno@hotmail.com" commit ...`, sem gravar configuração.
 - Mensagens de commit e textos da interface em português.
