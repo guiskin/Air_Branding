@@ -18,7 +18,7 @@ Piloto da ferramenta própria de gestão de projetos da Air Branding. Vite + Rea
 
 1. **Planejar antes de executar.** Mudança relevante (várias telas, dados, banco, regra de negócio) vira um arquivo em `tasks/` com critérios de aceite verificáveis (skill `planejar-tarefa`) e só começa após aprovação. Correção pequena e óbvia dispensa o arquivo.
 2. **Nada é removido sem aprovação:** funcionalidade, tela, coluna, política ou arquivo existente.
-3. **Banco:** antes de qualquer SQL, use o agente `analista-banco`. Mudança vira script novo e numerado em `supabase/` (skill `nova-migracao`); scripts já aplicados nunca são editados. Quem executa o SQL no Supabase é o usuário.
+3. **Banco:** antes de qualquer SQL, use o agente `analista-banco`. Mudança vira script novo e numerado em `supabase/` (skill `nova-migracao`); scripts já aplicados nunca são editados. Teste primeiro no projeto de teste (`airbranding-teste`); só depois o banco real, conforme a regra de SQL abaixo.
 4. **Seguir os padrões existentes:** nomes em português, `agir(rotulo, fn)` para mutações, acesso ao banco só em `src/dados.js`, classes CSS já existentes. Detalhes em `.claude/rules/`.
 5. **Verificar:** rode `npm run build` e confira a mudança no navegador local quando mexer na interface. Diga o que não foi verificado.
 6. **Fechar** com a skill `fechar-entrega`: build, revisão (`revisor`), resumo dos arquivos alterados, docs atualizadas, commit.
@@ -26,7 +26,8 @@ Piloto da ferramenta própria de gestão de projetos da Air Branding. Vite + Rea
 
 ## Regras de trabalho
 
-- **Publicação:** cada push na `main` publica no Cloudflare Pages. Pode commitar, mergear e fazer push quando o usuário pedir ou o fluxo da tarefa levar a isso; antes de mergear na `main`, confirme que `npm run build` passa. Não execute SQL em produção (quem roda no Supabase é o usuário). Operação destrutiva (apagar dados, `reset --hard`, `--force`) só com aprovação explícita.
+- **Publicação:** cada push na `main` publica no Cloudflare Pages. Pode commitar, mergear e fazer push quando o usuário pedir ou o fluxo da tarefa levar a isso; antes de mergear na `main`, confirme que `npm run build` passa. Operação destrutiva (apagar dados, `reset --hard`, `--force`) só com aprovação explícita.
+- **SQL (regra do usuário, 2026-11-17):** no projeto de teste, aplico e testo livremente pelo conector do Supabase. No banco real, aplico sozinho **só** um script numerado de `supabase/` que já passou no teste, no `analista-banco` e no `revisor`, com o estado "antes" consultado e a reversão no cabeçalho. Peço aprovação antes de `drop` de tabela ou coluna, `truncate`, `delete` ou `update` em massa, perda de dados, mudança de Authentication ou do projeto, criar ou apagar projetos, e qualquer SQL de escrita fora de script numerado. Detalhes em `.claude/rules/banco.md`.
 - **Branches:** `main` é produção. Trabalhe em `feat/…`, `fix/…` ou `docs/…`. Worktree só para tarefas em paralelo (cada uma precisa de `npm install` e `.env` próprios; o projeto está no OneDrive, então use com moderação).
 - **Git sem identidade nesta máquina.** Commite com `git -c user.name="Guilherme Ueno" -c user.email="gui.ueno@hotmail.com" commit ...`, sem gravar configuração.
 - Mensagens de commit e textos da interface em português.
