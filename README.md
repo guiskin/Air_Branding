@@ -21,7 +21,7 @@ Fica para depois: funil comercial, carga da equipe por semana, Gantt, relatório
 1. No painel do projeto, abra o SQL Editor.
 2. Cole e execute o conteúdo de `supabase/01_estrutura.sql`.
 3. Abra `supabase/02_convites_e_exemplos.sql`, troque os dois e-mails e nomes de exemplo pelos administradores reais e execute.
-4. Em Authentication, nas configurações do provedor Email, desligue a confirmação de e-mail ("Confirm email"). Sem isso, cada pessoa precisa clicar num link enviado por e-mail, e o plano gratuito envia poucos e-mails por hora.
+4. Em Authentication, nas configurações do provedor Email, deixe a confirmação de e-mail ("Confirm email") **ligada**: assim ninguém cria a conta de um e-mail que não é seu. O plano gratuito envia os e-mails por um servidor embutido com limite baixo de envios; antes de convidar a equipe, teste o cadastro com um e-mail externo e confira se o link de confirmação chega.
 5. Em Project Settings, na parte de API, copie a URL do projeto e a chave pública (anon ou publishable). Nunca use a chave `service_role` no aplicativo.
 
 ### 2. Hospedagem (Cloudflare Pages)
@@ -40,7 +40,7 @@ Fica para depois: funil comercial, carga da equipe por semana, Gantt, relatório
 
 1. Abra o endereço publicado e use "Primeiro acesso? Criar minha conta" com um dos e-mails de administrador.
 2. Em "Equipe e piloto", convide as pessoas do teste (e-mail, nome, área e perfil).
-3. Cada convidado cria a própria senha em "Primeiro acesso".
+3. Cada convidado cria a própria senha em "Primeiro acesso" e confirma o e-mail pelo link que recebe.
 4. Cadastre os clientes e projetos de teste em "Projetos".
 
 ## Durante o piloto

@@ -45,6 +45,16 @@ Qualquer membro edita qualquer entrega e etapa. Se isso é intencional, está re
 
 Publicação `supabase_realtime` inclui entregas, responsáveis, etapas, horas, comentários, projetos, clientes e pessoas.
 
+## Riscos conhecidos (ainda não corrigidos)
+
+Detalhes e plano na tarefa `tasks/001-seguranca-perfis-e-convites.md`.
+
+- **Escalada de perfil:** `pessoas_editar` e `convites_gestor` deixam coordenação se promover a admin ou convidar admins pela API.
+- **Cadastro por e-mail não verificado:** com "Confirm email" desligado, quem souber um e-mail convidado cria a conta antes da pessoa. Convites de exemplo do `02` com e-mails fictícios, se ainda existirem, são o caso mais grave.
+- **Histórico apagável:** `horas.pessoa_id`, `comentarios.autor_id` e `relatos.autor_id` usam `on delete cascade`; apagar um usuário no painel destrói o histórico.
+- **Políticas de horas:** `horas_editar` e `horas_apagar` não exigem `eh_membro()`.
+- **Armadilha:** o `grant ... on all tables` do `01` dá `update` na tabela inteira; qualquer restrição de colunas futura se perde se um script repetir esse `grant`.
+
 ## Como evoluir
 
 1. Agente `analista-banco` descreve o impacto.
