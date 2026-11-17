@@ -11,7 +11,7 @@ Aplicação de página única (SPA) em Vite + React 18, em JavaScript. Não há 
 | | `src/telas.jsx` | Meu dia, Projetos, Projeto, Equipe e piloto. |
 | | `src/Painel.jsx` | Detalhe da entrega. |
 | | `src/pecas.jsx` | Peças reutilizáveis (avatar, status, barra, campo salvo). |
-| | `src/estilos.css` | Todo o CSS, com variáveis em `:root`. |
+| | `src/estilos.css` | Todo o CSS: tokens em `:root`, tema escuro em `:root[data-tema='escuro']`, cores de status e de avatar por classe. Ver `design-system.md`. |
 | Dados | `src/dados.js` | Constantes de domínio, leitura (`carregar`), derivação (`montar`) e gravações. |
 | | `src/supabase.js` | Cliente Supabase e leitura das variáveis `VITE_*`. |
 | Banco | `supabase/*.sql` | Estrutura, RLS, gatilho de convite, realtime. |

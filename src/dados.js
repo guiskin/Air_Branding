@@ -1,14 +1,14 @@
 import { supabase } from './supabase'
 
 export const STATUS = [
-  { id: 'backlog', nome: 'Backlog', bg: '#ECEEF1', fg: '#3D4753' },
-  { id: 'aguardando', nome: 'Aguardando material', bg: '#F6E7D2', fg: '#7A4A0B' },
-  { id: 'planejado', nome: 'Planejado', bg: '#DDE7FB', fg: '#1D439C' },
-  { id: 'andamento', nome: 'Em andamento', bg: '#FFE9A8', fg: '#5E4300' },
-  { id: 'revisao', nome: 'Em revisão', bg: '#EADCF8', fg: '#5A2A8C' },
-  { id: 'aprovacao', nome: 'Em aprovação', bg: '#D6F0F2', fg: '#0D5560' },
-  { id: 'ajustes', nome: 'Ajustes', bg: '#FBDDE6', fg: '#8A1C44' },
-  { id: 'concluido', nome: 'Concluído', bg: '#D5EFDD', fg: '#14592E' },
+  { id: 'backlog', nome: 'Backlog' },
+  { id: 'aguardando', nome: 'Aguardando material' },
+  { id: 'planejado', nome: 'Planejado' },
+  { id: 'andamento', nome: 'Em andamento' },
+  { id: 'revisao', nome: 'Em revisão' },
+  { id: 'aprovacao', nome: 'Em aprovação' },
+  { id: 'ajustes', nome: 'Ajustes' },
+  { id: 'concluido', nome: 'Concluído' },
 ]
 
 export const TIPOS = [
@@ -84,11 +84,12 @@ export const iniciais = (nome) =>
     .map((p) => p[0].toUpperCase())
     .join('')
 
-const CORES = ['#1D439C', '#7A2E8E', '#0B6B5D', '#8A4B08', '#A3264F', '#3D4753', '#5A2A8C', '#0D5560']
+// Índice (0 a 7) da cor do avatar; as cores ficam em estilos.css (.avatar.cor-N).
+const NUMERO_DE_CORES = 8
 export const corPessoa = (id) => {
   let n = 0
   for (const c of id) n = (n * 31 + c.charCodeAt(0)) % 997
-  return CORES[n % CORES.length]
+  return n % NUMERO_DE_CORES
 }
 
 export function montar(dados, euId) {

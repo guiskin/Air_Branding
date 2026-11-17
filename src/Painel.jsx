@@ -17,7 +17,7 @@ export default function Painel({ app, entrega }) {
     if (feito !== undefined) setTexto('')
   }
   return (
-    <aside className="cartao pilha" aria-label="Detalhe da entrega" style={{ gap: 16 }}>
+    <aside className="cartao pilha solta" aria-label="Detalhe da entrega">
       <div className="fila entre">
         <span className="pequeno suave">
           {e.cliente ? `${e.cliente.nome}, ` : ''}
@@ -29,14 +29,14 @@ export default function Painel({ app, entrega }) {
       </div>
       <label className="campo" htmlFor="pe-titulo">
         <span>O que precisa ser feito</span>
-        <CampoSalvo id="pe-titulo" valor={e.titulo} aoSalvar={(v) => v.trim() && salvar('Renomear', { titulo: v.trim() })} style={{ fontWeight: 700 }} />
+        <CampoSalvo id="pe-titulo" valor={e.titulo} aoSalvar={(v) => v.trim() && salvar('Renomear', { titulo: v.trim() })} classe="destaque" />
       </label>
 
       <div className="bloco pilha">
         <div className="fila entre">
           <div>
             <div className="rotulo">Horas</div>
-            <div className="forte" style={{ fontSize: 20 }}>
+            <div className="forte numero-grande">
               {D.fmtMin(e.minutos)}
               {Number(e.horas_estimadas) ? ` de ${Number(e.horas_estimadas)}h` : ''}
             </div>
@@ -55,11 +55,11 @@ export default function Painel({ app, entrega }) {
           )}
         </div>
         <div className="fila fim">
-          <label className="campo cresce" htmlFor="pe-tipo" style={{ flexBasis: 150 }}>
+          <label className="campo tipo-hora" htmlFor="pe-tipo">
             <span>Tipo de hora</span>
             <SeletorTipo app={app} id="pe-tipo" />
           </label>
-          <label className="campo" htmlFor="pe-min" style={{ width: 110 }}>
+          <label className="campo minutos" htmlFor="pe-min">
             <span>Minutos</span>
             <input id="pe-min" className="entrada" type="number" min="1" value={minutos} onChange={(ev) => setMinutos(ev.target.value)} />
           </label>
@@ -73,20 +73,16 @@ export default function Painel({ app, entrega }) {
         </div>
       </div>
 
-      <div className="pilha" style={{ gap: 6 }}>
+      <div className="pilha curta">
         <div className="rotulo">Etapas da entrega</div>
         {e.etapas.length === 0 && <p className="pequeno suave">Entrega de etapa única.</p>}
         {e.etapas.map((x) => {
           const agora = e.etapaAtual && x.id === e.etapaAtual.id
-          const cor = x.concluida ? ['#D5EFDD', '#14592E', 'Feito'] : agora ? ['#FFE9A8', '#5E4300', 'Agora'] : ['#ECEEF1', '#3D4753', 'Depois']
+          const estado = x.concluida ? ['feito', 'Feito'] : agora ? ['agora', 'Agora'] : ['depois', 'Depois']
           return (
             <div key={x.id} className="etapa">
-              <span className="marca-etapa" style={{ background: cor[0], color: cor[1] }}>
-                {cor[2]}
-              </span>
-              <span className="cresce" style={{ flexBasis: 100, fontWeight: 500 }}>
-                {x.nome}
-              </span>
+              <span className={`marca-etapa ${estado[0]}`}>{estado[1]}</span>
+              <span className="nome-etapa">{x.nome}</span>
               <select
                 className="entrada"
                 aria-label={`Quem faz a etapa ${x.nome}`}
@@ -113,15 +109,14 @@ export default function Painel({ app, entrega }) {
         )}
       </div>
 
-      <div className="pilha" style={{ gap: 6 }}>
+      <div className="pilha curta">
         <div className="rotulo">Em que pé está</div>
         <div className="pilulas">
           {D.STATUS.map((s) => (
             <button
               key={s.id}
-              className="pilula"
+              className={`pilula status-${s.id}`}
               aria-pressed={e.status === s.id}
-              style={{ color: s.fg, background: e.status === s.id ? s.bg : '#FFFFFF', borderColor: e.status === s.id ? s.fg : '#C3CECB' }}
               onClick={() => e.status !== s.id && salvar(`Mudar status para ${s.id}`, { status: s.id })}
             >
               {s.nome}
@@ -130,7 +125,7 @@ export default function Painel({ app, entrega }) {
         </div>
       </div>
 
-      <div className="grade" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))' }}>
+      <div className="grade estreita">
         <label className="campo" htmlFor="pe-prazo">
           <span>Para quando</span>
           <input id="pe-prazo" className="entrada" type="date" value={e.prazo || ''} onChange={(ev) => salvar('Mudar prazo', { prazo: ev.target.value || null })} />
@@ -150,7 +145,7 @@ export default function Painel({ app, entrega }) {
       </div>
       {e.atrasada && <p className="pequeno perigo forte">{textoPrazo(e)}</p>}
 
-      <div className="pilha" style={{ gap: 6 }}>
+      <div className="pilha curta">
         <div className="rotulo">Quem faz</div>
         <div className="pilulas">
           {app.dados.pessoas.map((p) => {
@@ -158,9 +153,8 @@ export default function Painel({ app, entrega }) {
             return (
               <button
                 key={p.id}
-                className="pilula"
+                className="pilula pessoa"
                 aria-pressed={dentro}
-                style={{ fontWeight: 500, borderWidth: 1, background: dentro ? '#14201D' : '#FFFFFF', color: dentro ? '#FFFFFF' : '#14201D', borderColor: dentro ? '#14201D' : '#C3CECB' }}
                 onClick={() => app.agir(`${dentro ? 'Tirar' : 'Incluir'} ${p.nome} em "${e.titulo}"`, () => D.alternarResponsavel(e.id, p.id, !dentro))}
               >
                 {p.nome}
@@ -184,14 +178,14 @@ export default function Painel({ app, entrega }) {
         </a>
       )}
 
-      <div className="pilha" style={{ gap: 8 }}>
+      <div className="pilha media">
         <div className="rotulo">Conversa</div>
         {e.comentarios.map((c) => (
           <div key={c.id} className="comentario">
             <div className="pequeno forte">
               {(app.m.pessoaPorId[c.autor_id] || {}).nome || 'Alguém'}, {new Date(c.criado_em).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
             </div>
-            <div style={{ whiteSpace: 'pre-wrap' }}>{c.texto}</div>
+            <div className="texto-livre">{c.texto}</div>
           </div>
         ))}
         <label className="pequeno suave" htmlFor="pe-comentario">
@@ -200,8 +194,7 @@ export default function Painel({ app, entrega }) {
         <div className="fila">
           <input
             id="pe-comentario"
-            className="entrada cresce"
-            style={{ flexBasis: 180 }}
+            className="entrada comentario-novo"
             value={texto}
             onChange={(ev) => setTexto(ev.target.value)}
             onKeyDown={(ev) => ev.key === 'Enter' && enviarComentario()}

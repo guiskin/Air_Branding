@@ -71,10 +71,10 @@ function Login() {
   }
   return (
     <div className="centro laranja">
-      <form className="cartao pilha" onSubmit={enviar} style={{ gap: 16 }}>
+      <form className="cartao pilha solta" onSubmit={enviar}>
         <div>
           <div className="marca"><img className="logo grande" src="/logo.jpg" alt="Air" /></div>
-          <h1 style={{ fontSize: 32 }}>Gestor de Projetos</h1>
+          <h1 className="titulo-login">Gestor de Projetos</h1>
           <p className="suave">Piloto de testes. Entre com o e-mail que recebeu o convite.</p>
         </div>
         <label className="campo" htmlFor="lg-email">
@@ -105,7 +105,6 @@ function Login() {
         <button
           type="button"
           className="botao texto"
-          style={{ minHeight: 44 }}
           onClick={() => {
             setModo(modo === 'entrar' ? 'criar' : 'entrar')
             setMsg('')
@@ -180,7 +179,7 @@ function Relato({ contexto, aoFechar, aoEnviar }) {
             </div>
             <label className="campo" htmlFor="rl-descricao">
               <span>{tipo === 'bug' ? 'O que você tentou fazer e o que aconteceu?' : 'O que facilitaria seu dia a dia?'}</span>
-              <textarea id="rl-descricao" className="entrada" style={{ minHeight: 120 }} value={descricao} onChange={(e) => setDescricao(e.target.value)} />
+              <textarea id="rl-descricao" className="entrada alta" value={descricao} onChange={(e) => setDescricao(e.target.value)} />
             </label>
             <p className="pequeno suave">Vão junto, automaticamente: a tela em que você está, a entrega aberta, seus últimos cliques, o último erro e o navegador.</p>
             {estado === 'falhou' && (
@@ -427,7 +426,7 @@ function Sistema({ sessao }) {
       )}
       <main className="conteudo">
         {falha && (
-          <p role="alert" className="cartao pequeno forte perigo" style={{ marginBottom: 20 }}>
+          <p role="alert" className="cartao aviso-conexao pequeno forte perigo">
             Sem conexão com o servidor no momento. Os dados na tela podem estar desatualizados.
           </p>
         )}
@@ -450,7 +449,7 @@ function Sistema({ sessao }) {
         </div>
       </main>
       {aviso && (
-        <div className={`aviso ${aviso.erro ? 'erro' : ''}`} role="status">
+        <div className={`aviso ${aviso.erro ? 'erro' : ''}`} role={aviso.erro ? 'alert' : 'status'}>
           <div>
             <span>{aviso.texto}</span>
             {aviso.erro && (

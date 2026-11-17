@@ -159,7 +159,7 @@ export function Projetos({ app }) {
         return (
           <section key={c.id} className="pilha">
             <div className="fila">
-              <h2 style={{ fontSize: 20 }}>{c.nome}</h2>
+              <h2 className="titulo-grupo">{c.nome}</h2>
               <span className="pequeno suave">{projetos.length === 1 ? '1 projeto' : `${projetos.length} projetos`}</span>
             </div>
             <div className="grade cartoes">
@@ -168,7 +168,7 @@ export function Projetos({ app }) {
                 return (
                   <button key={p.id} className="projeto-cartao" onClick={() => app.ir('projeto', p.id)}>
                     <span>
-                      <span className="pequeno suave" style={{ display: 'block' }}>
+                      <span className="pequeno suave em-bloco">
                         {p.codigo}
                         {p.linha ? `, ${p.linha}` : ''}
                       </span>
@@ -338,12 +338,12 @@ export function Projeto({ app, projetoId }) {
     <div className="pilha larga">
       <div className="pilha">
         <div>
-          <button className="botao texto" style={{ minHeight: 44 }} onClick={() => app.ir('projetos')}>
+          <button className="botao texto" onClick={() => app.ir('projetos')}>
             Voltar para projetos
           </button>
         </div>
         <div className="fila entre fim">
-          <div className="pilha" style={{ gap: 4 }}>
+          <div className="pilha minima">
             <p className="pequeno suave">
               {projeto.codigo}
               {cliente ? `, ${cliente.nome}` : ''}
@@ -354,7 +354,7 @@ export function Projeto({ app, projetoId }) {
               {r.feitas} de {r.entregas.length} entregas concluídas. {D.fmtMin(r.minutos)} lançadas
               {Number(projeto.horas_vendidas) ? ` de ${Number(projeto.horas_vendidas)}h vendidas` : ''}.
             </p>
-            <div style={{ width: 240, maxWidth: '100%' }}>
+            <div className="largura-barra">
               <Barra pct={r.pct} rotulo="concluído" />
             </div>
           </div>
@@ -381,7 +381,7 @@ export function Projeto({ app, projetoId }) {
           const estimado = lista.reduce((a, e) => a + Number(e.horas_estimadas || 0), 0)
           return (
             <section key={s.id} className="cartao">
-              <div className="fila entre" style={{ paddingBottom: 8 }}>
+              <div className="fila entre cabeca-grupo">
                 <Etiqueta status={s.id} />
                 <span className="pequeno suave">
                   {lista.length === 1 ? '1 entrega' : `${lista.length} entregas`}, {D.fmtMin(lista.reduce((a, e) => a + e.minutos, 0))} lançadas
@@ -401,13 +401,13 @@ export function Projeto({ app, projetoId }) {
               const lista = r.entregas.filter((e) => e.status === s.id)
               return (
                 <div key={s.id} className="coluna">
-                  <div className="coluna-topo" style={{ background: s.bg, color: s.fg }}>
+                  <div className={`coluna-topo status-${s.id}`}>
                     <span>{s.nome}</span>
                     <span>{lista.length}</span>
                   </div>
                   {lista.map((e) => (
                     <div key={e.id} className="cartao-quadro">
-                      <button className="linha-titulo" style={{ flex: 'none' }} onClick={() => app.abrir(e.id)}>
+                      <button className="linha-titulo" onClick={() => app.abrir(e.id)}>
                         <strong>{e.titulo}</strong>
                         <span>{textoEtapa(e, app.m.pessoaPorId)}</span>
                       </button>
@@ -468,7 +468,7 @@ export function Equipe({ app }) {
             <div key={p.id} className="linha">
               <Avatares pessoas={[p]} />
               <span className="cresce">
-                <strong style={{ display: 'block', fontWeight: 500 }}>{p.nome}</strong>
+                <strong className="nome-linha">{p.nome}</strong>
                 <span className="pequeno suave">
                   {p.area}, {(D.PERFIS.find((x) => x.id === p.perfil) || {}).nome}
                 </span>
@@ -487,7 +487,7 @@ export function Equipe({ app }) {
         {convites.map((c) => (
           <div key={c.email} className="linha">
             <span className="cresce">
-              <strong style={{ display: 'block', fontWeight: 500 }}>{c.nome}</strong>
+              <strong className="nome-linha">{c.nome}</strong>
               <span className="pequeno suave">
                 {c.email}, {c.area}, {(D.PERFIS.find((x) => x.id === c.perfil) || {}).nome}
               </span>
@@ -551,12 +551,12 @@ export function Equipe({ app }) {
         {relatos.map((r) => {
           const autor = app.m.pessoaPorId[r.autor_id]
           return (
-            <div key={r.id} className="linha" style={{ alignItems: 'flex-start' }}>
-              <div className="cresce pilha" style={{ gap: 4 }}>
+            <div key={r.id} className="linha topo-alinhado">
+              <div className="cresce pilha minima">
                 <span className="pequeno suave">
                   {r.tipo === 'bug' ? 'Bug' : 'Melhoria'}, {autor ? autor.nome : 'alguém'}, {new Date(r.criado_em).toLocaleString('pt-BR')}
                 </span>
-                <span style={{ whiteSpace: 'pre-wrap' }}>{r.descricao}</span>
+                <span className="texto-livre">{r.descricao}</span>
                 <details>
                   <summary className="pequeno">Ver contexto</summary>
                   <pre className="contexto">{JSON.stringify(r.contexto, null, 2)}</pre>

@@ -3,7 +3,7 @@ import { STATUS, statusPorId, corPessoa, iniciais, fmtData, primeiroNome } from 
 
 export function Avatar({ pessoa }) {
   return (
-    <span className="avatar" title={pessoa.nome} style={{ background: corPessoa(pessoa.id) }}>
+    <span className={`avatar cor-${corPessoa(pessoa.id)}`} title={pessoa.nome}>
       {iniciais(pessoa.nome)}
     </span>
   )
@@ -24,11 +24,10 @@ export function SeletorStatus({ valor, aoMudar, rotulo = 'Status da entrega', ne
   const s = statusPorId(valor)
   return (
     <select
-      className="status-seletor"
+      className={`status-seletor ${neutro ? 'neutro' : `status-${s.id}`}`}
       aria-label={rotulo}
       value={valor}
       onChange={(e) => aoMudar(e.target.value)}
-      style={neutro ? undefined : { background: s.bg, color: s.fg }}
     >
       {STATUS.map((x) => (
         <option key={x.id} value={x.id}>
@@ -42,7 +41,7 @@ export function SeletorStatus({ valor, aoMudar, rotulo = 'Status da entrega', ne
 export function Etiqueta({ status }) {
   const s = statusPorId(status)
   return (
-    <span className="etiqueta" style={{ background: s.bg, color: s.fg }}>
+    <span className={`etiqueta status-${s.id}`}>
       {s.nome}
     </span>
   )
@@ -68,7 +67,7 @@ export function Barra({ pct, rotulo }) {
   )
 }
 
-export function CampoSalvo({ valor, aoSalvar, multilinha = false, tipo = 'text', id, ...resto }) {
+export function CampoSalvo({ valor, aoSalvar, multilinha = false, tipo = 'text', id, classe = '', ...resto }) {
   const [texto, setTexto] = useState(valor ?? '')
   useEffect(() => {
     setTexto(valor ?? '')
@@ -77,7 +76,7 @@ export function CampoSalvo({ valor, aoSalvar, multilinha = false, tipo = 'text',
     if (String(texto) !== String(valor ?? '')) aoSalvar(texto)
   }
   const Tag = multilinha ? 'textarea' : 'input'
-  return <Tag id={id} className="entrada" type={multilinha ? undefined : tipo} value={texto} onChange={(e) => setTexto(e.target.value)} onBlur={salvar} {...resto} />
+  return <Tag id={id} className={`entrada ${classe}`.trim()} type={multilinha ? undefined : tipo} value={texto} onChange={(e) => setTexto(e.target.value)} onBlur={salvar} {...resto} />
 }
 
 export function relogio(inicioIso) {
