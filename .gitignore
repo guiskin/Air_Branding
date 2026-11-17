@@ -4,3 +4,6 @@ dist
 .env.local
 .claude/worktrees/
 .claude/settings.local.json
+
+# Backups locais do banco (dados reais, nunca versionar)
+backups/

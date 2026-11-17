@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { aplicarEquipe, salvarEquipe } from './dados'
+import { aplicarEquipe, excluirEquipe, salvarEquipe } from './dados'
 
 export function SeletorEquipe({ id, equipes, valor, aoMudar, desabilitado }) {
   return (
@@ -31,6 +31,13 @@ export function CadastroEquipes({ app }) {
       membros: marcada ? [...atual.membros, id] : atual.membros.filter((membro) => membro !== id),
     }))
   }
+  const excluir = async (equipe) => {
+    if (salvando || !window.confirm(`Excluir a equipe "${equipe.nome}"? Só é possível se nenhum projeto a usar.`)) return
+    setSalvando(true)
+    const resultado = await app.agir(`Excluir equipe ${equipe.nome}`, () => excluirEquipe(equipe.id))
+    setSalvando(false)
+    if (resultado !== undefined) app.avisar('Equipe excluída.')
+  }
   const salvar = async (ev) => {
     ev.preventDefault()
     if (salvando || !edicao.nome.trim() || !membrosAtivos.length) return
@@ -61,6 +68,7 @@ export function CadastroEquipes({ app }) {
               <p className="pequeno suave">{nomes.join(', ') || 'Sem pessoas ativas'}</p>
             </div>
             <button className="botao pequeno" aria-label={`Editar equipe ${equipe.nome}`} disabled={Boolean(edicao)} onClick={() => editar(equipe)}>Editar</button>
+            <button className="botao pequeno" aria-label={`Excluir equipe ${equipe.nome}`} disabled={Boolean(edicao) || salvando} onClick={() => excluir(equipe)}>Excluir</button>
           </div>
         )
       })}

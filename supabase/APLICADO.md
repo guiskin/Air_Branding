@@ -9,16 +9,25 @@ Registro do que já foi executado no SQL Editor do Supabase. Quem aplica o scrip
 | `03_perfil_admin_e_desativar_pessoa.sql` | Perfil admin protegido, `pessoas.ativo`, `restrict` no histórico, privilégios mínimos | 2026-11-17 | Testado antes no projeto de teste (35 testes de comportamento e 22 operações do app, todos como esperado; ver o fim de `tasks/001-roteiro-de-aplicacao.md`). Aplicado no banco real por Claude, pelo conector do Supabase, com aprovação explícita do usuário; script executado inteiro com `begin`/`commit`, sem erro. Conferido depois: ver "Estado do banco após o 03". |
 | `04_configuracoes_de_perfil.sql` | Nome próprio editável e fotos de perfil em bucket privado | 2026-11-17 | Validado por SQL em `airbranding-teste` e aplicado no banco real com autorização explícita do usuário. Ver "Estado do banco após o 04". |
 | `05_equipes_em_projetos.sql` | Cadastro de equipes e cópia dos integrantes para projetos | 2026-11-17 | Validado antes em `airbranding-teste`, revisado pelo `analista-banco` e pelo `revisor`, estado "antes" conferido e aplicado no banco real com aprovação explícita do usuário, inteiro com `begin`/`commit`. Ver "Estado do banco após o 05". |
+| `06_excluir_equipe.sql` | Função `excluir_equipe` (só gestor; recusa equipe em uso) | 2026-11-17 | Testada em `airbranding-teste` (transação revertida), `analista-banco` e `revisor` ok; aplicada no real com `begin`/`commit`. Ver "Estado do banco após 06 a 08". |
+| `07_avancar_etapa_atomico.sql` | Função `avancar_etapa` (`security invoker`), conclui etapa, responsável, status e comentário em uma transação | 2026-11-17 | Igual à 06. Testada com os três avanços, entrega sem etapa pendente, entrega inexistente e `anon` negado. |
+| `08_pasta_drive_do_projeto.sql` | Coluna `projetos.pasta_drive` com check de link do Drive | 2026-11-17 | Igual à 06. Testada com gestor (grava), membro (0 linhas) e links inválidos (recusados, 23514). |
 
-Nenhum outro script foi executado no banco real. Próximo número livre: `06`.
+Nenhum outro script foi executado no banco real. Próximo número livre: `09`.
 
 ## Projeto de teste
 
-Existe um segundo projeto gratuito, `airbranding-teste`, criado em 2026-11-17 na mesma organização, só para testar scripts antes do banco real. Tem o `01`, uma versão fictícia do `02` (pessoas de teste com e-mails `.test`), o `03`, o `04` e o `05`. Seus dados são descartáveis. Para repetir um teste do zero, apague as tabelas e reaplique em ordem.
+Existe um segundo projeto gratuito, `airbranding-teste`, criado em 2026-11-17 na mesma organização, só para testar scripts antes do banco real. Tem o `01`, uma versão fictícia do `02` (pessoas de teste com e-mails `.test`) e os scripts `03` a `08`. Seus dados são descartáveis. Para repetir um teste do zero, apague as tabelas e reaplique em ordem.
 
 Na validação do `04`, a sessão simulada de um membro alterou o próprio nome e associou, substituiu e removeu a foto. A segunda conta teve acesso à foto em uso. Os testes confirmaram o bloqueio de nome vazio, gravação em pasta alheia, associação de foto alheia e execução das funções sem login. A transação de teste foi revertida após as verificações. O bucket permaneceu privado, com limite de 2 MiB e formatos JPEG, PNG e WebP.
 
 Na validação do `05`, sessões simuladas conferiram cadastro, edição, cópia de membros para projetos novos e existentes, reaplicação e remoção da equipe. A criação com equipe inválida foi revertida sem deixar projeto parcial. Membros ativos conseguiram ler as atribuições, as escritas indevidas foram bloqueadas e as quatro tabelas estavam na publicação Realtime. A transação de teste foi revertida após as verificações.
+
+## Estado do banco após 06 a 08 (2026-11-17)
+
+- Antes: nenhuma das funções `excluir_equipe` e `avancar_etapa`, sem a coluna `projetos.pasta_drive`, tabelas da 05 presentes, `eh_gestor()` presente, `authenticated` com select, insert e update em `projetos`, Postgres 17.12; 11 pessoas, 4 projetos, 3 entregas, 5 etapas, 1 comentário.
+- Depois: `excluir_equipe` (`security definer`) e `avancar_etapa` (`security invoker`) executáveis só por `authenticated`; coluna `pasta_drive` `text not null default ''` com o check `projetos_pasta_drive_valida`; nenhum projeto com link ainda; contagens iguais às de antes.
+- Não verificado no real: concluir etapa, excluir equipe e salvar a pasta do Drive pela interface publicada.
 
 ## Estado do banco após o 05 (2026-11-17)
 
