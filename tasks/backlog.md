@@ -9,9 +9,15 @@ Configurações (foto de perfil, senha, nome completo, fonte -1) e ajustes da te
 ### Recursos inspirados no ClickUp
 
 - **Equipes reutilizáveis (implementado, script `05`).** Criar uma equipe com nome e membros e selecioná-la ao criar ou editar um projeto, para montar a equipe do projeto de uma vez. A atribuição de responsáveis por entrega continua disponível.
-- **Google Agenda.** Conectar a agenda do e-mail Google de cada pessoa e exibir seus compromissos no Air Branding ao lado dos prazos das entregas. Definir quais agendas poderão ser exibidas e se a integração também criará eventos.
+- **Google Agenda e Google Tasks.** Conectar a conta Google para exibir compromissos ao lado dos prazos das entregas. A solicitação do áudio também pede um fluxo do Google para o Air Branding, para que uma ação na agenda ou nas tarefas chegue automaticamente à gestão de projetos. Definir se a origem será um evento no Google Agenda ou uma tarefa no Google Tasks, qual ação dispara a transferência e o que ela deve criar ou atualizar no Air Branding.
 - **Google Drive e documentos do projeto (parcial: link da pasta implementado, script `08`; falta destacar documentos e buscar arquivos, que exigem OAuth).** Vincular uma pasta do Drive ao projeto. Na visão geral, destacar documentos como briefing, atas de reunião e materiais de referência. Permitir buscar pelo nome dos arquivos da pasta e abrir os resultados conforme as permissões do Drive.
 - **Painéis (implementado, ver `tasks/concluidas/006-paineis.md`).** Criar painéis com filtros de cliente, projeto, equipe e período. Aproveitar os indicadores já existentes para mostrar entregas por status, atrasos e horas lançadas em relação às estimadas.
+
+### Solicitações da apresentação
+
+- **Painel para clientes.** Vincular o e-mail de cada cliente aos projetos que ele pode acompanhar. Mostrar status e previsões de entrega e, nos contratos por horas, quanto do contratado já foi usado. O acesso externo precisa ficar restrito aos projetos e dados autorizados para aquele cliente.
+- **Resumo diário por e-mail.** Enviar pela manhã aos contatos vinculados ao projeto um resumo com os status e as próximas entregas, destacando o que está previsto para o dia. Definir horário, dias de envio e conteúdo. Depende da configuração e validação do envio de e-mail.
+- **Alerta de qualidade por versão.** Avisar coordenação ou gestão de qualidade quando um material passar do limite aceitável de revisões. Se o limite for V3, por exemplo, o alerta deve aparecer ao chegar à V4. Definir como a versão será registrada e quem recebe o aviso.
 
 ## Escopo futuro do produto (já definido no README)
 

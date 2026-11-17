@@ -3,6 +3,8 @@ import * as D from './dados'
 import { Avatares, Barra, CampoSalvo, Etiqueta, SeletorStatus, relogio, textoEtapa, textoPrazo } from './pecas'
 import { IndicadoresProjeto, PaineisProjeto } from './paineis-projeto'
 import { CadastroEquipes, SeletorEquipe } from './EquipesProjeto'
+import { AlertasQualidade, LimiteQualidade } from './Qualidade'
+import { AcessosCliente } from './PortalCliente'
 
 function BotaoTimer({ app, entrega }) {
   const rodando = app.m.timer && app.m.timer.entrega_id === entrega.id
@@ -136,6 +138,7 @@ export function MeuDia({ app }) {
       <Grupo app={app} titulo="Com você agora" dica="Ligue o timer com um clique e mude o status aqui mesmo." vazio="Nada pendente com você." entregas={comigo} />
       <Grupo app={app} titulo="Em outra etapa" dica="Entregas suas que estão com outra pessoa no momento." vazio="Nenhuma entrega sua parada em outra etapa." entregas={outras} />
       {app.gestor && <Grupo app={app} titulo="Precisa de atenção" dica="Entregas atrasadas ou sem dono em todos os projetos." vazio="Nenhuma entrega atrasada ou sem dono." entregas={atencao} />}
+      <AlertasQualidade app={app} />
     </div>
   )
 }
@@ -416,6 +419,8 @@ export function Projeto({ app, projetoId }) {
         </div>
         <IndicadoresProjeto resumo={r} vendidas={Number(projeto.horas_vendidas)} porTipo={porTipo} />
         <PastaDrive app={app} projeto={projeto} />
+        <LimiteQualidade key={projeto.id} app={app} projeto={projeto} />
+        {app.gestor && app.dados.publicadas && <AcessosCliente key={projeto.id} app={app} projetoId={projeto.id} />}
       </div>
       {criando && <NovaEntrega app={app} projeto={projeto} aoFechar={() => setCriando(false)} />}
       <div className="projeto-corpo">

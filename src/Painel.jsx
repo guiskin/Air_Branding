@@ -2,6 +2,7 @@ import { useState } from 'react'
 import * as D from './dados'
 import { Avatar, CampoSalvo, relogio, textoPrazo } from './pecas'
 import { SeletorTipo } from './telas'
+import { VersaoEntrega } from './Qualidade'
 
 export default function Painel({ app, entrega }) {
   const [minutos, setMinutos] = useState('30')
@@ -23,6 +24,16 @@ export default function Painel({ app, entrega }) {
           <span>O que precisa ser feito</span>
           <CampoSalvo id="pe-titulo" valor={e.titulo} aoSalvar={(v) => v.trim() && salvar('Renomear', { titulo: v.trim() })} classe="destaque" />
         </label>
+
+        <VersaoEntrega app={app} entrega={e} />
+        {app.gestor && app.dados.publicadas && (
+          <div className="bloco fila entre">
+            <p className="pequeno">{e.visivelCliente ? 'Visível no portal do cliente' : 'Interna · oculta no portal do cliente'}</p>
+            <button type="button" className="botao pequeno" onClick={() => app.agir('Alterar visibilidade no portal', () => D.publicarEntrega(e.id, !e.visivelCliente))}>
+              {e.visivelCliente ? 'Ocultar do cliente' : 'Publicar para cliente'}
+            </button>
+          </div>
+        )}
 
         <div className="bloco pilha">
           <div className="fila entre">

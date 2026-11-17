@@ -85,8 +85,15 @@ async function carregarEquipes() {
   return { equipes: equipes.data, atribuicoes: atribuicoes.data }
 }
 
+async function opcional(consulta) {
+  const { data, error } = await consulta
+  if (['42P01', 'PGRST205', 'PGRST202'].includes(error?.code)) return null
+  if (error) throw new Error(error.message)
+  return data
+}
+
 export async function carregar() {
-  const [pessoas, clientes, projetos, entregas, responsaveis, etapas, horas, comentarios, cadastroEquipes] = await Promise.all([
+  const [pessoas, clientes, projetos, entregas, responsaveis, etapas, horas, comentarios, cadastroEquipes, versoes, publicadas] = await Promise.all([
     ok(supabase.from('pessoas').select('*').order('nome')),
     ok(carregarPaginado((opcoes) => supabase.from('clientes').select('*', opcoes).order('nome'))),
     ok(carregarPaginado((opcoes) => supabase.from('projetos').select('*', opcoes).order('codigo'))),
@@ -96,9 +103,26 @@ export async function carregar() {
     ok(carregarPaginado((opcoes) => supabase.from('horas').select('*', opcoes).order('inicio').order('id'))),
     ok(supabase.from('comentarios').select('*').order('criado_em')),
     carregarEquipes(),
+    opcional(carregarPaginado((opcoes) => supabase.from('entrega_versoes').select('*', opcoes).order('entrega_id'))),
+    opcional(carregarPaginado((opcoes) => supabase.from('portal_entregas').select('entrega_id', opcoes).order('entrega_id'))),
   ])
-  return { pessoas: await assinarFotos(pessoas), clientes, projetos, entregas, responsaveis, etapas, horas, comentarios, cadastroEquipes }
+  return { pessoas: await assinarFotos(pessoas), clientes, projetos, entregas, responsaveis, etapas, horas, comentarios, cadastroEquipes, versoes, publicadas }
 }
+
+export const consultarPortal = () => opcional(supabase.rpc('painel_do_cliente'))
+export const consultarPessoaInterna = (id) => ok(supabase.from('pessoas').select('id').eq('id', id).maybeSingle())
+export const listarAcessosCliente = (projeto) => ok(supabase.from('projeto_acessos_cliente').select('email').eq('projeto_id', projeto).order('email'))
+export const concederAcessoCliente = (projeto, email) => ok(supabase.from('projeto_acessos_cliente').upsert({ projeto_id: projeto, email: email.trim().toLowerCase() }, { ignoreDuplicates: true }))
+export const revogarAcessoCliente = (projeto, email) => ok(supabase.from('projeto_acessos_cliente').delete().eq('projeto_id', projeto).eq('email', email))
+
+export function publicarEntrega(entregaId, publicar) {
+  const tabela = supabase.from('portal_entregas')
+  return ok(publicar ? tabela.upsert({ entrega_id: entregaId }, { ignoreDuplicates: true }) : tabela.delete().eq('entrega_id', entregaId))
+}
+
+export const registrarVersao = (entrega, versao) => ok(supabase.rpc('registrar_versao', { entrega, versao_anterior: versao }))
+export const salvarLimiteVersao = (projeto, limite_versao) => ok(supabase.from('projetos').update({ limite_versao }).eq('id', projeto).select('id').single())
+export const importarGoogle = (projeto, fonte, colecao_id, itens) => ok(supabase.rpc('importar_entregas_google', { projeto, fonte, colecao_id, itens }))
 
 export async function alterarMeuNome(nome) {
   const { error } = await supabase.rpc('alterar_meu_nome', { novo_nome: nome.trim() })
@@ -198,6 +222,8 @@ export function montar(dados, euId) {
   const pessoaPorId = Object.fromEntries(dados.pessoas.map((p) => [p.id, p]))
   const clientePorId = Object.fromEntries(dados.clientes.map((c) => [c.id, c]))
   const projetoPorId = Object.fromEntries(dados.projetos.map((p) => [p.id, p]))
+  const versaoPorEntrega = new Map((dados.versoes || []).map((v) => [v.entrega_id, v.versao]))
+  const publicadas = new Set((dados.publicadas || []).map((e) => e.entrega_id))
   const equipePorId = Object.fromEntries((dados.cadastroEquipes?.equipes || []).map((equipe) => [equipe.id, equipe]))
   const equipePorProjeto = Object.fromEntries((dados.cadastroEquipes?.atribuicoes || []).map((atribuicao) => [
     atribuicao.projeto_id,
@@ -217,6 +243,8 @@ export function montar(dados, euId) {
     const comigo = etapaAtual ? etapaAtual.pessoa_id === euId : responsaveis.some((p) => p.id === euId)
     return {
       ...e,
+      versao: versaoPorEntrega.get(e.id) || 1,
+      visivelCliente: publicadas.has(e.id),
       etapas,
       etapaAtual,
       responsaveis,

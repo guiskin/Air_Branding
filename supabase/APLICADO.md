@@ -12,12 +12,17 @@ Registro do que já foi executado no SQL Editor do Supabase. Quem aplica o scrip
 | `06_excluir_equipe.sql` | Função `excluir_equipe` (só gestor; recusa equipe em uso) | 2026-11-17 | Testada em `airbranding-teste` (transação revertida), `analista-banco` e `revisor` ok; aplicada no real com `begin`/`commit`. Ver "Estado do banco após 06 a 08". |
 | `07_avancar_etapa_atomico.sql` | Função `avancar_etapa` (`security invoker`), conclui etapa, responsável, status e comentário em uma transação | 2026-11-17 | Igual à 06. Testada com os três avanços, entrega sem etapa pendente, entrega inexistente e `anon` negado. |
 | `08_pasta_drive_do_projeto.sql` | Coluna `projetos.pasta_drive` com check de link do Drive | 2026-11-17 | Igual à 06. Testada com gestor (grava), membro (0 linhas) e links inválidos (recusados, 23514). |
+| `09_portal_do_cliente.sql` | Acesso por e-mail, publicação explícita de entregas e isolamento do portal | Pendente | Aplicado e validado no Supabase de teste. |
+| `10_alertas_de_qualidade.sql` | Versão de entrega e limite por projeto | Pendente | Aplicado e validado no Supabase de teste. |
+| `11_importacao_google.sql` | Importação de itens do Google sem duplicatas por projeto | Pendente | Aplicado e validado no Supabase de teste. |
 
-Nenhum outro script foi executado no banco real. Próximo número livre: `09`.
+Nenhum outro script foi executado no banco real. Próximo número livre: `12`.
 
 ## Projeto de teste
 
-Existe um segundo projeto gratuito, `airbranding-teste`, criado em 2026-11-17 na mesma organização, só para testar scripts antes do banco real. Tem o `01`, uma versão fictícia do `02` (pessoas de teste com e-mails `.test`) e os scripts `03` a `08`. Seus dados são descartáveis. Para repetir um teste do zero, apague as tabelas e reaplique em ordem.
+Existe um segundo projeto gratuito, `airbranding-teste`, criado em 2026-11-17 na mesma organização, só para testar scripts antes do banco real. Tem o `01`, uma versão fictícia do `02` (pessoas de teste com e-mails `.test`) e os scripts `03` a `11`. Seus dados são descartáveis. Para repetir um teste do zero, apague as tabelas e reaplique em ordem.
+
+As migrações `09` a `11` foram validadas com identidades simuladas de gestor, membro, cliente confirmado e cliente pendente. Os testes verificaram revogação, escopo do projeto, ausência de dados internos, versões até V4, reenvio sem duplicatas e reversão de lote inválido. Os registros criados no teste foram revertidos.
 
 Na validação do `04`, a sessão simulada de um membro alterou o próprio nome e associou, substituiu e removeu a foto. A segunda conta teve acesso à foto em uso. Os testes confirmaram o bloqueio de nome vazio, gravação em pasta alheia, associação de foto alheia e execução das funções sem login. A transação de teste foi revertida após as verificações. O bucket permaneceu privado, com limite de 2 MiB e formatos JPEG, PNG e WebP.
 

@@ -31,6 +31,7 @@ export function Menu({ app, tela, projetoId, tema, setTema, aberto, fechar, aoCa
     ['dia', 'Meu dia'],
     ['projetos', 'Projetos'],
     ['paineis', 'Painéis'],
+    ['google', 'Google Agenda e Tasks'],
   ]
   if (gestor) itens.push(['equipe', 'Equipe e piloto'])
   const clientes = dados.clientes.map((c) => ({ ...c, projetos: dados.projetos.filter((p) => p.cliente_id === c.id && p.ativo) }))

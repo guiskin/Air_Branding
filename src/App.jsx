@@ -6,6 +6,8 @@ import { MeuDia, Projetos, Projeto, Equipe } from './telas'
 import Painel from './Painel'
 import Configuracoes from './Configuracoes'
 import Paineis from './Paineis'
+import Google from './Google'
+import PortalCliente from './PortalCliente'
 import { Menu, BarraTopo } from './menu'
 import { lerTema, aplicarTema } from './tema'
 
@@ -449,19 +451,7 @@ function Sistema({ sessao, tema, setTema }) {
   }
   const eu = m.pessoaPorId[euId]
   if (!eu) {
-    return (
-      <div className="centro">
-        <div className="cartao pilha">
-          <h2>Seu acesso ainda não foi liberado</h2>
-          <p className="suave">A conta {sessao.user.email} não está na lista de pessoas do piloto. Fale com quem coordena o teste.</p>
-          <div>
-            <button className="botao" onClick={() => supabase.auth.signOut()}>
-              Sair
-            </button>
-          </div>
-        </div>
-      </div>
-    )
+    return <PortalCliente sair={() => supabase.auth.signOut()} />
   }
 
   const gestor = eu.perfil === 'admin' || eu.perfil === 'coordenacao'
@@ -501,7 +491,7 @@ function Sistema({ sessao, tema, setTema }) {
     versao,
   }
   const clienteAtual = projetoAtual ? m.clientePorId[projetoAtual.cliente_id] : null
-  const nomesDeTela = { dia: 'Meu dia', projetos: 'Projetos', paineis: 'Painéis', equipe: 'Equipe e piloto', configuracoes: 'Configurações' }
+  const nomesDeTela = { dia: 'Meu dia', projetos: 'Projetos', paineis: 'Painéis', google: 'Google Agenda e Tasks', equipe: 'Equipe e piloto', configuracoes: 'Configurações' }
   const caminho = tela === 'projeto' ? [clienteAtual ? clienteAtual.nome : 'Projetos', projetoAtual ? projetoAtual.codigo : 'Projeto'] : [nomesDeTela[tela]]
   const timer = m.timer && {
     titulo: timerEntrega ? timerEntrega.titulo : `Hora sem tarefa em ${timerProjeto ? timerProjeto.nome : 'projeto'}`,
@@ -548,6 +538,7 @@ function Sistema({ sessao, tema, setTema }) {
               {tela === 'dia' && <MeuDia app={app} />}
               {tela === 'projetos' && <Projetos app={app} />}
               {tela === 'paineis' && <Paineis app={app} />}
+              {tela === 'google' && <Google app={app} />}
               {tela === 'projeto' && <Projeto app={app} projetoId={projetoId} />}
               {tela === 'equipe' && gestor && <Equipe app={app} />}
               {tela === 'configuracoes' && <Configuracoes app={app} />}
@@ -569,6 +560,27 @@ function Sistema({ sessao, tema, setTema }) {
       {relatando && <Relato contexto={contexto} aoFechar={() => setRelatando(false)} aoEnviar={(r) => D.enviarRelato(r)} />}
     </>
   )
+}
+
+function EntradaSessao({ sessao, tema, setTema }) {
+  const [interna, setInterna] = useState(null)
+  const [erro, setErro] = useState('')
+  const id = sessao.user.id
+  useEffect(() => {
+    let ativa = true
+    D.consultarPessoaInterna(id).then((pessoa) => {
+      if (ativa) setInterna(Boolean(pessoa))
+    }).catch(() => {
+      if (ativa) setErro('Não deu para verificar seu acesso. Recarregue a página para tentar de novo.')
+    })
+    return () => { ativa = false }
+  }, [id])
+  if (interna === null) {
+    return <div className="centro">{erro ? <p className="cartao perigo" role="alert">{erro}</p> : <p role="status">Carregando…</p>}</div>
+  }
+  return interna
+    ? <Sistema sessao={sessao} tema={tema} setTema={setTema} />
+    : <PortalCliente sair={() => supabase.auth.signOut()} />
 }
 
 export default function App() {
@@ -601,5 +613,5 @@ export default function App() {
     )
   }
   if (!sessao) return <Login />
-  return <Sistema key={sessao.user.id} sessao={sessao} tema={tema} setTema={setTema} />
+  return <EntradaSessao key={sessao.user.id} sessao={sessao} tema={tema} setTema={setTema} />
 }

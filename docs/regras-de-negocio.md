@@ -55,3 +55,19 @@ Funil comercial, carga da equipe, Gantt interativo, relatório de projeto, impor
 - Membros ativos podem consultar os indicadores dos projetos que já conseguem ver. Filtros de cliente, projeto e equipe são combinados. O filtro de equipe considera a equipe aplicada ao projeto e aparece quando há equipes cadastradas.
 - O intervalo de datas inclui os dois extremos. As entregas são selecionadas pelo prazo e as horas encerradas pela data local de início. Entregas sem prazo entram quando o período está em branco. Horas sem entrega integram as horas lançadas.
 - A distribuição usa o status atual. Uma entrega continua atrasada enquanto tem prazo anterior a hoje e seu status difere de Concluído. A lista de atrasadas abre os detalhes da entrega.
+
+## Acesso do cliente
+
+- A coordenação e a administração autorizam e-mails em **Acesso do cliente** dentro do projeto. O cliente usa **Primeiro acesso** e confirma o e-mail para entrar no portal.
+- O cliente vê os dados gerais dos projetos autorizados, o total de horas encerradas e as entregas marcadas com **Publicar para cliente**. O portal exibe título, status e prazo dessas entregas.
+- Revogar o vínculo elimina o acesso a partir da próxima consulta. A página do cliente atualiza a cada 30 segundos e quando a aba volta a ficar visível.
+
+## Google Agenda e Tasks
+
+- Em **Google Agenda e Tasks**, a pessoa conecta sua conta, escolhe o projeto e uma agenda ou lista. Eventos elegíveis do dia atual e dos 90 dias seguintes e tarefas abertas com título iniciado por `[Air]` viram entregas em Backlog, atribuídas à pessoa que fez a importação. A importação usa título e data, quando houver.
+- A sincronização roda a cada minuto enquanto a tela está aberta e o token é válido. Reimportar a mesma referência no mesmo projeto não cria outra entrega. Alterar ou excluir o item no Google não altera a entrega criada.
+
+## Qualidade
+
+- Toda entrega começa em V1. Em uma entrega aberta de um projeto ativo, membros internos podem registrar uma nova versão.
+- A coordenação ou administração define o limite por projeto, com V3 como padrão. Uma entrega aberta acima do limite aparece em **Alertas de qualidade**, em **Meu dia**.

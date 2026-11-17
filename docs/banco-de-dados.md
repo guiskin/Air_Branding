@@ -71,6 +71,13 @@ Publicação `supabase_realtime` inclui entregas, responsáveis, etapas, horas, 
 
 ## Segurança do piloto
 
+As migrações `09` a `11` adicionam recursos independentes.
+
+- **Portal do cliente.** `projeto_acessos_cliente` liga um e-mail normalizado a um projeto. `portal_entregas` guarda as entregas publicadas explicitamente por gestores. O cadastro de um cliente autorizado passa pelo mesmo Auth sem criar linha em `pessoas`. A função `painel_do_cliente` exige e-mail confirmado, consulta os vínculos em cada chamada e devolve somente identificação do projeto, total de horas e título, status e prazo das entregas publicadas. Membros externos seguem fora das regras internas de leitura e escrita.
+- **Realtime.** O Supabase não aplica RLS ao publicar eventos de exclusão. A migração `09` limita a publicação a inclusões e atualizações, e outras sessões internas passam a refletir exclusões na recarga periódica. As tabelas de acesso do portal ficam fora do Realtime.
+- **Qualidade.** `projetos.limite_versao` tem padrão 3 e é editável por gestores. `entrega_versoes` registra versões a partir de V2, geradas por `registrar_versao`. A função compara a versão esperada com a atual sob trava da entrega para evitar incrementos duplicados.
+- **Google.** `importar_entregas_google` valida a sessão de membro ativo e o projeto. A reserva da chave `projeto, origem, coleção, item` e o cadastro da entrega e de seu responsável ocorrem na mesma transação. `google_importacoes` guarda a chave mesmo se a entrega for removida. Tokens Google ficam na memória do navegador e não são gravados no banco.
+
 Detalhes e plano na tarefa `tasks/001-seguranca-perfis-e-convites.md`.
 
 - O `03` protege a administração, restringe edição de horas a pessoas ativas, preserva o histórico de horas, comentários e relatos e concede privilégios específicos por tabela e coluna.

@@ -244,6 +244,8 @@ select.entrada { width: auto; max-width: 100%; }
 
 .cartao { background: var(--cartao); border: 1px solid var(--borda); border-radius: var(--raio-cartao); padding: 18px 24px; }
 .cartao.aviso-conexao { margin-bottom: 20px; }
+.portal-cliente { width: min(100%, 1000px); margin-inline: auto; padding: 24px; }
+.portal-cliente .logo { width: 48px; height: 48px; }
 .pilha { display: flex; flex-direction: column; gap: 12px; }
 .pilha.minima { gap: 4px; }
 .pilha.curta { gap: 6px; }

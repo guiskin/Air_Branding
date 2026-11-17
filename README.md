@@ -38,6 +38,16 @@ Fica para depois: funil comercial, carga da equipe por semana, Gantt interativo,
 4. Publique. Cada push na branch `main` gera uma nova publicação.
 5. De volta ao Supabase, em Authentication, na configuração de URLs, coloque o endereço publicado como Site URL.
 
+### Google Agenda e Google Tasks
+
+No Google Cloud, habilite a Google Calendar API e a Google Tasks API. Configure a tela de consentimento OAuth com o público apropriado e crie um ID de cliente OAuth para **Aplicativo da Web**. Cadastre a origem publicada e a origem de teste em **Origens JavaScript autorizadas**, como `https://air-branding.pages.dev` e `http://localhost:5173`. Defina `VITE_GOOGLE_CLIENT_ID` com o ID público e refaça o build. A integração usa autorização somente leitura no navegador. [Google Identity Services](https://developers.google.com/identity/oauth2/web/guides/use-token-model)
+
+Em **Google Agenda e Tasks**, conecte a conta, escolha o projeto, a origem e a agenda ou lista. Adicione `[Air]` ao começo dos títulos que devem entrar no Air Branding. Use a migração `11` no Supabase.
+
+### Portal do cliente
+
+Aplique a migração `09` e valide os e-mails de confirmação em um endereço externo. Em cada projeto, um gestor autoriza o e-mail do cliente e marca as entregas que podem ser publicadas. O cliente entra na mesma URL pelo fluxo **Primeiro acesso**.
+
 ### 3. Primeiro acesso
 
 1. Abra o endereço publicado e use "Primeiro acesso? Criar minha conta" com um dos e-mails de administrador.
