@@ -1,6 +1,6 @@
 # 004: Ideias de configurações e tela de clientes
 
-Status: implementação solicitada no chat. Configurações, fontes e ajustes de clientes estão implementados. A migração 04 aguarda teste no Supabase. O formato dos detalhes da entrega aguarda a escolha do usuário.
+Status: configurações, fontes e ajustes de clientes implementados. A migração 04 aguarda teste no Supabase.
 
 ## 1. Botão de configurações (novo)
 
@@ -15,7 +15,7 @@ Um botão de configurações com as funcionalidades:
 
 - [x] **Entrega selecionada em cor diferente** na lista, no Quadro e na linha do tempo.
 - [x] **Conversa em bloquinho separado**, para ficar evidente que é um chat.
-- [ ] **Repensar a janela lateral direita da entrega:** o usuário não acha que ficou boa. **Não implementar ainda:** primeiro enviar ao usuário propostas de alternativa (ex.: abrir a entrega em página própria, expandir inline no card, modal centralizado, abas dentro da pasta do cliente) para ele escolher.
+- [x] **Abrir os detalhes em modal central**, escolhido pelo usuário após comparar os exemplos. No celular, o modal ocupa a tela inteira.
 - [x] **Ao sair da pasta do cliente, fechar o painel lateral direito da entrega.**
 - [x] **Mover "Cadastrar cliente"** para o botão **"+"** ao lado de "Clientes" na barra lateral esquerda.
 

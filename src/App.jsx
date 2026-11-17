@@ -1,4 +1,4 @@
-import { Component, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Component, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { supabase, configurado, urlRelatos } from './supabase'
 import * as D from './dados'
 import { relogio } from './pecas'
@@ -135,6 +135,12 @@ function textoRelato(tipo, descricao, contexto) {
 }
 
 function Relato({ contexto, aoFechar, aoEnviar }) {
+  const dialogo = useRef(null)
+  useLayoutEffect(() => {
+    const janela = dialogo.current
+    janela.showModal()
+    return () => janela.close()
+  }, [])
   const [tipo, setTipo] = useState(contexto.ultimoErro ? 'bug' : 'melhoria')
   const [descricao, setDescricao] = useState('')
   const [estado, setEstado] = useState('editando')
@@ -158,10 +164,13 @@ function Relato({ contexto, aoFechar, aoEnviar }) {
     }
   }
   return (
-    <div className="veu" role="dialog" aria-modal="true" aria-label="Reportar bug ou sugerir melhoria">
+    <dialog ref={dialogo} className="modal-relato" aria-labelledby="titulo-relato" onCancel={(evento) => {
+      evento.preventDefault()
+      aoFechar()
+    }}>
       <div className="janela">
         <div className="fila entre">
-          <h2>Reportar bug ou sugerir melhoria</h2>
+          <h2 id="titulo-relato">Reportar bug ou sugerir melhoria</h2>
           <button className="botao pequeno" onClick={aoFechar}>
             Fechar
           </button>
@@ -214,7 +223,39 @@ function Relato({ contexto, aoFechar, aoEnviar }) {
           </div>
         </details>
       </div>
-    </div>
+    </dialog>
+  )
+}
+
+function ModalEntrega({ entrega, aoFechar, children }) {
+  const dialogo = useRef(null)
+  useLayoutEffect(() => {
+    const janela = dialogo.current
+    janela.showModal()
+    return () => janela.close()
+  }, [])
+
+  const fechar = () => {
+    if (dialogo.current.contains(document.activeElement)) document.activeElement.blur()
+    aoFechar()
+  }
+
+  return (
+    <dialog ref={dialogo} className="modal-entrega" aria-labelledby="titulo-modal-entrega" onCancel={(evento) => {
+      evento.preventDefault()
+      fechar()
+    }}>
+      <header className="modal-entrega-topo">
+        <div className="pilha minima">
+          {entrega.projeto && (
+            <p className="pequeno suave">{[entrega.cliente?.nome, entrega.projeto.nome].filter(Boolean).join(' / ')}</p>
+          )}
+          <h2 id="titulo-modal-entrega">{entrega.titulo}</h2>
+        </div>
+        <button type="button" className="botao pequeno" onClick={fechar}>Fechar</button>
+      </header>
+      {children}
+    </dialog>
   )
 }
 
@@ -348,6 +389,15 @@ function Sistema({ sessao, tema, setTema }) {
   }, [])
 
   const m = useMemo(() => (dados ? D.montar(dados, euId) : null), [dados, euId])
+  const entregaAberta = aberta ? m?.entregas.find((entrega) => entrega.id === aberta) : null
+  const modalAberto = Boolean(entregaAberta)
+  useLayoutEffect(() => {
+    if (modalAberto || !origemEntrega.current) return
+    const origem = origemEntrega.current
+    origemEntrega.current = null
+    const acionador = origem?.isConnected && origem.getClientRects().length ? origem : conteudo.current
+    acionador?.focus({ preventScroll: true })
+  }, [modalAberto])
   const temTimer = Boolean(m && m.timer)
 
   useEffect(() => {
@@ -428,16 +478,10 @@ function Sistema({ sessao, tema, setTema }) {
     if (id) {
       registrar('Abrir entrega')
       origemEntrega.current = document.activeElement
-    } else {
-      const origem = origemEntrega.current
-      if (origem?.isConnected && origem.getClientRects().length) origem.focus()
-      else conteudo.current?.focus()
-      origemEntrega.current = null
     }
     setAberta(id)
   }
   const app = { dados, m, eu, gestor, agir, ir, abrir, entregaId: aberta, tipo, setTipo, avisar }
-  const entregaAberta = aberta ? m.entregas.find((e) => e.id === aberta) : null
   const timerEntrega = m.timer && m.timer.entrega_id ? m.entregas.find((e) => e.id === m.timer.entrega_id) : null
   const timerProjeto = m.timer ? m.projetoPorId[m.timer.projeto_id] : null
   const projetoAtual = tela === 'projeto' ? m.projetoPorId[projetoId] : null
@@ -463,6 +507,21 @@ function Sistema({ sessao, tema, setTema }) {
     tipo: D.tipoPorId(m.timer.tipo).nome,
     relogio: relogio(m.timer.inicio),
   }
+  const avisoVisivel = aviso && (
+    <div className={`aviso ${aviso.erro ? 'erro' : ''}`} role={aviso.erro ? 'alert' : 'status'}>
+      <div>
+        <span>{aviso.texto}</span>
+        {aviso.erro && (
+          <button className="botao claro pequeno" onClick={() => setRelatando(true)}>
+            Reportar
+          </button>
+        )}
+        <button className="botao claro pequeno" onClick={() => setAviso(null)}>
+          Fechar aviso
+        </button>
+      </div>
+    </div>
+  )
 
   return (
     <>
@@ -484,51 +543,27 @@ function Sistema({ sessao, tema, setTema }) {
                 Sem conexão com o servidor no momento. Os dados na tela podem estar desatualizados.
               </p>
             )}
-            <div className="colunas">
-              <div className="principal">
-                <Barreira key={tela + (projetoId || '')} aoFalhar={(t) => (ultimoErro.current = t)} aoRelatar={() => setRelatando(true)}>
-                  {tela === 'dia' && <MeuDia app={app} />}
-                  {tela === 'projetos' && <Projetos app={app} />}
-                  {tela === 'projeto' && <Projeto app={app} projetoId={projetoId} />}
-                  {tela === 'equipe' && gestor && <Equipe app={app} />}
-                  {tela === 'configuracoes' && <Configuracoes app={app} />}
-                </Barreira>
-              </div>
-              {entregaAberta && (
-                <div className="lateral">
-                  <Barreira key={entregaAberta.id} aoFalhar={(t) => (ultimoErro.current = t)} aoRelatar={() => setRelatando(true)}>
-                    <Painel app={app} entrega={entregaAberta} />
-                  </Barreira>
-                </div>
-              )}
-            </div>
+            <Barreira key={tela + (projetoId || '')} aoFalhar={(t) => (ultimoErro.current = t)} aoRelatar={() => setRelatando(true)}>
+              {tela === 'dia' && <MeuDia app={app} />}
+              {tela === 'projetos' && <Projetos app={app} />}
+              {tela === 'projeto' && <Projeto app={app} projetoId={projetoId} />}
+              {tela === 'equipe' && gestor && <Equipe app={app} />}
+              {tela === 'configuracoes' && <Configuracoes app={app} />}
+            </Barreira>
           </main>
         </div>
       </div>
       {cadastrandoCliente && gestor && (
         <CadastroCliente app={app} aoFechar={() => setCadastrandoCliente(false)} />
       )}
-      {aviso && (
-        <div className={`aviso ${aviso.erro ? 'erro' : ''}`} role={aviso.erro ? 'alert' : 'status'}>
-          <div>
-            <span>{aviso.texto}</span>
-            {aviso.erro && (
-              <button
-                className="botao claro pequeno"
-                onClick={() => {
-                  setAviso(null)
-                  setRelatando(true)
-                }}
-              >
-                Reportar
-              </button>
-            )}
-            <button className="botao claro pequeno" onClick={() => setAviso(null)}>
-              Fechar
-            </button>
-          </div>
-        </div>
-      )}
+      {entregaAberta ? (
+        <ModalEntrega key={entregaAberta.id} entrega={entregaAberta} aoFechar={() => abrir(null)}>
+          <Barreira aoFalhar={(t) => (ultimoErro.current = t)} aoRelatar={() => setRelatando(true)}>
+            <Painel app={app} entrega={entregaAberta} />
+          </Barreira>
+          {avisoVisivel}
+        </ModalEntrega>
+      ) : avisoVisivel}
       {relatando && <Relato contexto={contexto} aoFechar={() => setRelatando(false)} aoEnviar={(r) => D.enviarRelato(r)} />}
     </>
   )

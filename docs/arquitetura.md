@@ -33,6 +33,8 @@ Consequência conhecida: o volume lido cresce com o total de dados, não com o q
 
 Sem roteador. A tela ativa (`dia`, `projetos`, `projeto`, `equipe`, `configuracoes`) e a entrega aberta ficam no estado de `Sistema`. Os atalhos do menu chamam `app.ir`, que fecha os detalhes quando a pessoa troca de tela ou de projeto. Em tela estreita o menu é uma gaveta controlada pelo estado `menuAberto`. O formulário de cadastro de cliente abre em um diálogo nativo pelo botão "+" do menu.
 
+Os detalhes da entrega abrem em um diálogo nativo central. No celular, o diálogo ocupa a tela inteira. A tela de origem permanece montada e mantém sua posição ao fechar. Avisos de operações na entrega aparecem dentro do diálogo, e o formulário de relato pode abrir por cima dele.
+
 ## Autenticação e acesso
 
 E-mail e senha pelo Supabase Auth. Só entra quem tem e-mail em `convites`: um gatilho em `auth.users` cria a linha em `pessoas` ou recusa o cadastro. Detalhes em `banco-de-dados.md`.
