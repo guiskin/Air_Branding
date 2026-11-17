@@ -18,10 +18,11 @@ Uma entrada por decisão: data, decisão, motivo. Mais recente no topo.
 Plano na tarefa `tasks/001-seguranca-perfis-e-convites.md` (S1, S2, S3 e B1). S4 não tem tarefa ainda. S5 e B2 entram no registro `supabase/APLICADO.md` (R4). B3 e B4 estão no backlog.
 
 - **S1:** coordenação consegue se promover a admin ou convidar admins pela API (políticas `pessoas_editar` e `convites_gestor`).
-- **S2:** com "Confirm email" desligado, o e-mail do convite não é verificado; alguém pode criar a conta de um convidado antes dele.
+- **S2:** se a confirmação de e-mail estiver desligada, o e-mail do convite não é verificado e alguém pode criar a conta de um convidado antes dele. Em 2026-11-16 a confirmação está **ligada** (o README manda desligar), o que reduz o risco; resta o risco de o e-mail de confirmação não chegar a convidados externos (SMTP embutido).
 - **S3:** a mensagem de erro do cadastro revela se um e-mail está convidado.
 - **S4:** qualquer membro edita qualquer entrega e etapa, inclusive `projeto_id`.
-- **S5:** backup do banco não confirmado.
+- **S5:** confirmado em 2026-11-16: o plano gratuito do Supabase não faz backup.
+- **S6:** `authenticated` tem `truncate`, `references` e `trigger` nas tabelas (padrão do Supabase); a API não expõe `truncate`, mas é privilégio a retirar (D8 da tarefa 001).
 - **B1:** apagar uma pessoa apaga suas horas e comentários (`on delete cascade`).
 - **B2:** não há controle de versão do banco; o estado de produção não está no repositório.
 - **B3:** status, tipos e perfis estão duplicados entre `dados.js` e os `check` do SQL.
@@ -30,5 +31,5 @@ Plano na tarefa `tasks/001-seguranca-perfis-e-convites.md` (S1, S2, S3 e B1). S4
 ## Pendente de decisão
 
 - **S4:** qualquer membro editar qualquer entrega e etapa é intencional?
-- **Tarefa 001, D1 a D7** (detalhes na tarefa): D1 coordenação promove ou rebaixa coordenação? D2 S2 por código de convite, confirmação de e-mail ou outra? D3 aprovar mudar políticas e funções existentes; D4 `restrict` no lugar de `cascade`; D5 regra de desativação; D6 políticas de horas; D7 tela de perfil.
+- **Tarefa 001, D1 a D8** (detalhes na tarefa): D1 coordenação promove ou rebaixa coordenação? D2 manter a confirmação de e-mail ligada, usar código de convite ou ambos (e corrigir o README)? D3 aprovar mudar políticas e funções existentes; D4 `restrict` no lugar de `cascade`; D5 regra de desativação; D6 políticas de horas; D7 tela de perfil; D8 retirar privilégios não usados.
 - O projeto deve sair do OneDrive? Worktrees e `node_modules` ali geram sincronização pesada.

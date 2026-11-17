@@ -1,6 +1,6 @@
 # 001: segurança de perfis, convites e desativação de pessoas
 
-- **Status:** proposta (aguarda decisões e conferência no painel)
+- **Status:** proposta (conferências feitas em 2026-11-16; aguarda decisões D1 a D8)
 - **Branch:** `fix/seguranca-fase1` (documentação). A implementação do script e das telas usa branch própria, depois da aprovação.
 - **Origem:** auditoria de 2026-11-16 (S1, S2, S3, B1; itens R1 e R2 do backlog). Análise feita pelo agente `analista-banco`.
 
@@ -10,9 +10,23 @@
 2. **S2:** impedir que alguém crie a conta de uma pessoa convidada antes dela.
 3. **B1:** desativar uma pessoa sem apagar suas horas, comentários e relatos.
 
-## Antes de qualquer script: conferir no painel do Supabase (somente leitura)
+## Resultado das conferências (2026-11-16)
 
-1. **Convites de exemplo (urgente).** `select * from public.convites;` e procure `exemplo.com`. O `02_convites_e_exemplos.sql` cria convites de **admin** com e-mails fictícios. Se nunca foram trocados ou removidos, e "Confirm email" está desligado, qualquer pessoa pode se cadastrar com um deles e virar admin. Se existirem, remova-os agora.
+| # | Resultado | Efeito |
+|---|---|---|
+| 1 | Só existe o convite do administrador real; sem `exemplo.com`. | O caso mais grave (cadastro em convite fictício de admin) **não existe**. |
+| 2 | 1 pessoa, admin, criada logo após o `01`. | Nenhuma conta desconhecida. |
+| 3 | Nenhum convite pendente. | Hoje ninguém pode ser "ultrapassado" no cadastro (S2 sem alvo no momento). |
+| 4 | Políticas iguais ao `01`. Privilégios: `authenticated` tem também `delete`, `truncate`, `references`, `trigger` (padrão do Supabase). | S1 confirmada no banco, mas só é explorável quando existir um usuário de coordenação. Privilégios: ver D8. |
+| 5 | "Confirm email" **ligado**, "Allow new users to sign up" ligado, SMTP não verificado. | O README manda desligar: divergência. S2 cai de gravidade (quem cadastra um e-mail alheio não entra sem confirmar), mas surge o risco inverso: convidado externo pode não receber o e-mail. |
+| 6 | Sem backup (plano gratuito). | Aceitável com dados de teste; reavaliar antes de dados reais de cliente. |
+| 7 | `01` e `02` aplicados agora; nada além disso. | Próximo script é o `03`. Registrado em `supabase/APLICADO.md`. |
+
+**Leitura geral:** o banco está limpo e só tem o administrador. Este é o melhor momento para aplicar o 03 (S1 e B1), porque ainda não há coordenação nem membros a migrar. O que falta é decidir D1 a D8, e antes de convidar a primeira pessoa externa, testar se ela recebe o e-mail de confirmação (D2).
+
+## Conferências originais (mantidas como referência)
+
+1. **Convites de exemplo.** `select * from public.convites;` e procure `exemplo.com`. O `02_convites_e_exemplos.sql` cria convites de **admin** com e-mails fictícios. Se nunca foram trocados ou removidos, e "Confirm email" está desligado, qualquer pessoa pode se cadastrar com um deles e virar admin. Se existirem, remova-os agora.
 2. **Quem é admin hoje:** `select email, nome, perfil, criado_em from public.pessoas order by criado_em;`. Compare com Authentication, Users, e procure contas desconhecidas.
 3. **Convites pendentes:** `select c.* from public.convites c left join public.pessoas p on lower(p.email) = lower(c.email) where p.id is null;`
 4. **Políticas e gatilhos reais:** `select policyname, cmd, roles, qual, with_check from pg_policies where schemaname='public' and tablename in ('pessoas','convites');` e `select tgname, tgrelid::regclass from pg_trigger where not tgisinternal and tgrelid::regclass::text in ('public.pessoas','public.convites');`
@@ -25,12 +39,13 @@
 | # | Decisão | Recomendação do analista |
 |---|---|---|
 | D1 | Coordenação pode promover membro a coordenação, e rebaixar ou desativar outra coordenação? (o rascunho permite os dois, porque só protege linhas de admin) | Aceitável (par seu). Alternativa: só admin altera qualquer perfil. |
-| D2 | S2: código de convite de uso único (b), confirmação de e-mail (a) ou outra? | (b), em duas etapas (04 e 05). (a) só com SMTP próprio. Até lá, criar o convite só quando a pessoa for se cadastrar na hora e remover os pendentes. |
+| D2 | S2: manter a confirmação de e-mail **ligada** (estado real; o README manda desligar), código de convite de uso único (b), ou as duas? | Com a confirmação ligada, o risco de S2 é baixo, mas depende de o e-mail chegar (SMTP embutido tem limite baixo e restrições; conferir na documentação atual). Se a entrega falhar com convidados externos, ou for aceitar cliente real: (b), em duas etapas (04 e 05), ou SMTP próprio. Antes, testar o cadastro de uma pessoa externa e o que acontece quando alguém cadastra o e-mail de outra (o analista não afirmou esse comportamento). Corrigir o README conforme a decisão. |
 | D3 | Aprovar `drop policy` de `pessoas_editar` e `convites_gestor`, `create or replace` de `eh_membro()` e `eh_gestor()`, e os `revoke` de `update`, `insert` e `delete` em `pessoas` (passa a valer só `update` por coluna) | Necessário para S1 e B1. |
 | D4 | Trocar `on delete cascade` por `restrict` em `horas`, `comentarios` e `relatos`? | Sim, para que apagar o usuário no painel não destrua o histórico. Exige conferir os nomes reais das constraints. |
 | D5 | Regra de negócio da desativação: o que fazer com entregas e etapas abertas de quem sai? "Sem dono" passa a considerar só responsáveis ativos? | A definir. |
 | D6 | Corrigir `horas_editar` e `horas_apagar`, que não exigem `eh_membro()` (pessoa desativada ainda edita as próprias horas)? | Risco baixo; decidir. |
 | D7 | Criar tela para promover e rebaixar perfil? | Sem ela, mudança de perfil é pelo painel. |
+| D8 | Retirar de `anon` e `authenticated` os privilégios que o app não usa (`truncate`, `references`, `trigger`) nas tabelas de `public`, e conferir o que `anon` tem? A API (PostgREST) não expõe `truncate`, então não é explorável por ela hoje; é endurecimento. | Fazer junto do 03, via `revoke` e `alter default privileges` (o Supabase reaplica o padrão em tabelas novas). Antes, rodar: `select grantee, string_agg(privilege_type, ', ' order by privilege_type) from information_schema.role_table_grants where table_schema='public' and table_name='pessoas' group by grantee;` |
 
 ## Banco
 
@@ -66,8 +81,8 @@ Mudança de banco: scripts 03 (S1 e B1), 04 e 05 (S2). Rascunho do 03 em `tasks/
 
 ## Critérios de aceite
 
-- [ ] Conferências 1 a 7 respondidas pelo usuário e registradas em `supabase/APLICADO.md`.
-- [ ] D1 a D7 decididas e registradas em `docs/decisoes.md`.
+- [x] Conferências 1 a 7 respondidas pelo usuário e registradas em `supabase/APLICADO.md` (2026-11-16). Resta confirmar os privilégios por papel (D8) e se o SMTP é o embutido.
+- [ ] D1 a D8 decididas e registradas em `docs/decisoes.md`.
 - [ ] Como coordenação, pela interface e pela API: convidar admin e se promover a admin falham; convidar membro funciona.
 - [ ] Como admin: convidar e promover admin funciona; alterar o próprio perfil falha.
 - [ ] Desativar uma pessoa: ela perde o acesso na hora, o timer aberto é fechado e suas horas e comentários continuam visíveis. Reativar devolve o acesso.

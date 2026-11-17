@@ -4,15 +4,26 @@ Registro do que já foi executado no SQL Editor do Supabase. O repositório não
 
 | Script | O que faz | Aplicado em | Observação |
 |---|---|---|---|
-| `01_estrutura.sql` | Estrutura, RLS, gatilho de convite, realtime | _a confirmar_ | |
-| `02_convites_e_exemplos.sql` | Convites dos administradores e dados de exemplo | _a confirmar_ | Os e-mails de exemplo precisam ter sido trocados antes de executar. |
+| `01_estrutura.sql` | Estrutura, RLS, gatilho de convite, realtime | 2026-11-16 (noite, horário de Brasília) | Informado pelo usuário. Políticas de `pessoas` e `convites` conferidas: batem com o script. |
+| `02_convites_e_exemplos.sql` | Convites dos administradores e dados de exemplo | 2026-11-16 (noite, horário de Brasília) | Convites conferidos: só existe o convite do administrador real, sem e-mails fictícios. |
 
-## Configurações fora do SQL (conferir no painel)
+Nenhum outro script foi executado. Próximo número livre: `03`.
 
-| Item | Onde | Estado |
+## Estado do banco na conferência de 2026-11-16
+
+- `convites`: 1 linha (o administrador real). Nenhum convite pendente.
+- `pessoas`: 1 pessoa, perfil admin, criada logo depois da aplicação do `01`.
+- Políticas de `pessoas` e `convites`: `convites_gestor` (all), `pessoas_editar` (update) e `pessoas_ver` (select), iguais ao `01`.
+- Privilégios: o papel `authenticated` tem, além de select, insert e update, também `delete`, `truncate`, `references` e `trigger` em `pessoas` (padrão do Supabase). A listagem completa tinha 28 linhas e não foi vista inteira: falta confirmar quais papéis (por exemplo `anon`) têm o quê. Ver tarefa `001`, D8.
+
+## Configurações fora do SQL (painel do Supabase)
+
+| Item | Onde | Estado em 2026-11-16 |
 |---|---|---|
-| Confirmação de e-mail ("Confirm email") | Authentication, provedor Email | _a confirmar_ (o README manda desligar) |
-| Backup do banco | Project Settings, Database | _a confirmar_ (o plano gratuito não garante backup e pausa o projeto após 7 dias sem uso) |
+| Confirmação de e-mail ("Confirm email") | Authentication, provedor Email | **Ligada** (o README manda desligar: divergência, ver tarefa `001`, D2) |
+| Permitir novos cadastros ("Allow new users to sign up") | Authentication | Ligado |
+| Provedor de e-mail (embutido ou SMTP próprio) | Authentication, SMTP Settings | Não verificado; no plano gratuito, sem SMTP próprio configurado, é o embutido, com limite baixo de envios (conferir os limites atuais na documentação) |
+| Backup do banco | Project Settings, Database | **Não há** (plano gratuito) |
 | Site URL | Authentication, URL Configuration | _a confirmar_ |
 
 ## Como usar
