@@ -51,5 +51,5 @@ Agente de QA: só criar depois do R5. Agentes de frontend, backend e arquitetura
 - Carregar só o necessário em vez de todas as tabelas a cada mudança do realtime.
 - Decidir se qualquer membro pode editar qualquer entrega (RLS atual).
 - Controle de versão do banco: registrar quais scripts já foram aplicados em produção.
-- Recuperação de senha (hoje manual pelo painel do Supabase).
+- Recuperação de senha (hoje manual pelo painel do Supabase): proposta em `tasks/008-recuperacao-de-senha.md`, aguardando aprovação.
 - Logo oficial no lugar do selo "air" provisório.
