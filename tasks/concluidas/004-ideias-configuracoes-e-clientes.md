@@ -1,6 +1,6 @@
 # 004: Ideias de configurações e tela de clientes
 
-Status: configurações, fontes e ajustes de clientes implementados. A migração 04 aguarda teste no Supabase.
+Status: configurações, fontes e ajustes de clientes implementados. A migração 04 já está aplicada no banco real (ver `supabase/APLICADO.md`); falta validar o envio de foto pela interface publicada.
 
 ## 1. Botão de configurações (novo)
 

@@ -372,8 +372,8 @@ function Sistema({ sessao, tema, setTema }) {
   }, [])
 
   useEffect(() => {
-    if (!aviso || aviso.erro) return undefined
-    const t = setTimeout(() => setAviso(null), 4000)
+    if (!aviso) return undefined
+    const t = setTimeout(() => setAviso((atual) => (atual === aviso ? null : atual)), 10000)
     return () => clearTimeout(t)
   }, [aviso])
 

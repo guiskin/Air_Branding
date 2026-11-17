@@ -96,7 +96,7 @@ O avatar do perfil tem 60 px no menu e em Configurações. O avatar padrão tem 
 | Pessoas | `.avatar`, `.avatares`, `.pilula.pessoa` | |
 | Progresso | `.barra` | Tem `role="img"` e rótulo com a porcentagem. |
 | Timer | `.timer-chip`, `.relogio` | Chip vinho com texto branco na barra superior; o relógio usa algarismos tabulares. |
-| Aviso | `.aviso`, `.aviso.erro` | Erro usa `role="alert"`; sucesso `role="status"` e some em 4 s. |
+| Aviso | `.aviso`, `.aviso.erro` | Erro usa `role="alert"` e sucesso usa `role="status"`. Ambos somem após 10 segundos. |
 | Janela | `.veu`, `.janela` | `role="dialog"` e `aria-modal`. |
 | Estados | texto "Carregando…", cartão de erro com "Tentar de novo", frases de vazio | Ainda sem esqueleto de carregamento nem ação nos vazios; melhoria prevista. |
 | Layout | `.colunas`, `.principal`, `.lateral`, `.grade`, `.centro` | |
