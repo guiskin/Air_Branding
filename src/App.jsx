@@ -5,6 +5,7 @@ import { relogio } from './pecas'
 import { MeuDia, Projetos, Projeto, Equipe } from './telas'
 import Painel from './Painel'
 import Configuracoes from './Configuracoes'
+import Paineis from './Paineis'
 import { Menu, BarraTopo } from './menu'
 import { lerTema, aplicarTema } from './tema'
 
@@ -500,7 +501,7 @@ function Sistema({ sessao, tema, setTema }) {
     versao,
   }
   const clienteAtual = projetoAtual ? m.clientePorId[projetoAtual.cliente_id] : null
-  const nomesDeTela = { dia: 'Meu dia', projetos: 'Projetos', equipe: 'Equipe e piloto', configuracoes: 'Configurações' }
+  const nomesDeTela = { dia: 'Meu dia', projetos: 'Projetos', paineis: 'Painéis', equipe: 'Equipe e piloto', configuracoes: 'Configurações' }
   const caminho = tela === 'projeto' ? [clienteAtual ? clienteAtual.nome : 'Projetos', projetoAtual ? projetoAtual.codigo : 'Projeto'] : [nomesDeTela[tela]]
   const timer = m.timer && {
     titulo: timerEntrega ? timerEntrega.titulo : `Hora sem tarefa em ${timerProjeto ? timerProjeto.nome : 'projeto'}`,
@@ -546,6 +547,7 @@ function Sistema({ sessao, tema, setTema }) {
             <Barreira key={tela + (projetoId || '')} aoFalhar={(t) => (ultimoErro.current = t)} aoRelatar={() => setRelatando(true)}>
               {tela === 'dia' && <MeuDia app={app} />}
               {tela === 'projetos' && <Projetos app={app} />}
+              {tela === 'paineis' && <Paineis app={app} />}
               {tela === 'projeto' && <Projeto app={app} projetoId={projetoId} />}
               {tela === 'equipe' && gestor && <Equipe app={app} />}
               {tela === 'configuracoes' && <Configuracoes app={app} />}

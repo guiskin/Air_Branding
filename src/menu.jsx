@@ -30,6 +30,7 @@ export function Menu({ app, tela, projetoId, tema, setTema, aberto, fechar, aoCa
   const itens = [
     ['dia', 'Meu dia'],
     ['projetos', 'Projetos'],
+    ['paineis', 'Painéis'],
   ]
   if (gestor) itens.push(['equipe', 'Equipe e piloto'])
   const clientes = dados.clientes.map((c) => ({ ...c, projetos: dados.projetos.filter((p) => p.cliente_id === c.id && p.ativo) }))

@@ -439,6 +439,12 @@ details summary { cursor: pointer; min-height: 44px; display: flex; align-items:
 .indicadores-projeto dd { margin: 0; }
 .indicadores-projeto dd:first-of-type { font-size: calc(23px - var(--ajuste-fonte)); font-weight: 700; }
 .indicadores-projeto .barra { margin-top: 4px; max-width: 140px; }
+.grade.filtros-paineis { grid-template-columns: repeat(auto-fit, minmax(min(100%, 158px), 1fr)); }
+.grade.graficos-paineis { grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); align-items: start; }
+.graficos-paineis .linha-titulo { overflow-wrap: anywhere; }
+.status-painel { display: grid; grid-template-columns: minmax(100px, 9rem) minmax(0, 1fr) auto; align-items: center; gap: 8px; }
+.status-painel .etiqueta { justify-self: start; }
+.status-painel .barra > div { background: var(--st-fg); }
 .projeto-corpo { display: flex; align-items: flex-start; flex-wrap: wrap; gap: 16px; }
 .projeto-entregas { flex: 999 1 415px; min-width: 0; container-type: inline-size; }
 .paineis-projeto { flex: 1 1 256px; min-width: 0; }

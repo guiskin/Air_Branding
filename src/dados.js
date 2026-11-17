@@ -45,6 +45,22 @@ async function ok(consulta) {
   return data
 }
 
+async function carregarPaginado(consultar) {
+  const tamanho = 1000
+  const primeira = await consultar({ count: 'exact' }).range(0, tamanho - 1)
+  if (primeira.error) return primeira
+
+  const data = primeira.data.slice()
+  let recebidos = data.length
+  while (recebidos && (primeira.count == null ? recebidos === tamanho : data.length < primeira.count)) {
+    const pagina = await consultar().range(data.length, data.length + tamanho - 1)
+    if (pagina.error) return pagina
+    recebidos = pagina.data.length
+    data.push(...pagina.data)
+  }
+  return { data, error: null }
+}
+
 async function assinarFotos(pessoas) {
   const caminhos = [...new Set(pessoas.map((p) => p.foto_caminho).filter(Boolean))]
   if (!caminhos.length) return pessoas
@@ -59,8 +75,8 @@ async function assinarFotos(pessoas) {
 
 async function carregarEquipes() {
   const [equipes, atribuicoes] = await Promise.all([
-    supabase.from('equipes').select('id,nome,equipe_membros(pessoa_id)').order('nome'),
-    supabase.from('projeto_equipes').select('projeto_id,equipe_id,projeto_equipe_membros(pessoa_id)'),
+    carregarPaginado((opcoes) => supabase.from('equipes').select('id,nome,equipe_membros(pessoa_id)', opcoes).order('nome').order('id')),
+    carregarPaginado((opcoes) => supabase.from('projeto_equipes').select('projeto_id,equipe_id,projeto_equipe_membros(pessoa_id)', opcoes).order('projeto_id')),
   ])
   const erros = [equipes.error, atribuicoes.error].filter(Boolean)
   const falha = erros.find(({ code }) => !['42P01', 'PGRST205'].includes(code))
@@ -72,12 +88,12 @@ async function carregarEquipes() {
 export async function carregar() {
   const [pessoas, clientes, projetos, entregas, responsaveis, etapas, horas, comentarios, cadastroEquipes] = await Promise.all([
     ok(supabase.from('pessoas').select('*').order('nome')),
-    ok(supabase.from('clientes').select('*').order('nome')),
-    ok(supabase.from('projetos').select('*').order('codigo')),
-    ok(supabase.from('entregas').select('*').order('criado_em')),
+    ok(carregarPaginado((opcoes) => supabase.from('clientes').select('*', opcoes).order('nome'))),
+    ok(carregarPaginado((opcoes) => supabase.from('projetos').select('*', opcoes).order('codigo'))),
+    ok(carregarPaginado((opcoes) => supabase.from('entregas').select('*', opcoes).order('criado_em').order('id'))),
     ok(supabase.from('entrega_responsaveis').select('*')),
     ok(supabase.from('etapas').select('*').order('ordem')),
-    ok(supabase.from('horas').select('*').order('inicio')),
+    ok(carregarPaginado((opcoes) => supabase.from('horas').select('*', opcoes).order('inicio').order('id'))),
     ok(supabase.from('comentarios').select('*').order('criado_em')),
     carregarEquipes(),
   ])
@@ -138,11 +154,13 @@ export async function alterarMinhaSenha(atual, nova) {
   throw new Error(error.message)
 }
 
-export const hoje = () => {
-  const d = new Date()
-  const p = (n) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
+export function dataLocal(data) {
+  const mes = String(data.getMonth() + 1).padStart(2, '0')
+  const dia = String(data.getDate()).padStart(2, '0')
+  return `${data.getFullYear()}-${mes}-${dia}`
 }
+
+export const hoje = () => dataLocal(new Date())
 
 export const fmtData = (iso) => {
   if (!iso) return ''
