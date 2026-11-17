@@ -14,19 +14,20 @@ Origem da identidade: site e Instagram da Air (cores, fontes e formas lidos em 2
 
 ## Tema
 
-- Claro é o padrão. O escuro é ativado pelo atributo `data-tema="escuro"` no `<html>`; todas as cores vêm das variáveis, então nada mais muda.
-- O botão para o usuário alternar (e lembrar a escolha) chega na fase 2 da tarefa 003. Até lá o atributo só pode ser posto manualmente.
+- Claro é o padrão (primeira visita). O escuro é ativado pelo atributo `data-tema="escuro"` no `<html>`; todas as cores vêm das variáveis, então nada mais muda.
+- O usuário escolhe no menu lateral, sob o nome, pelo seletor **Claro / Escuro** (sol e meia-lua, com rótulo e `aria-pressed`). A escolha fica só neste navegador (`localStorage`, chave `air-tema`, em `src/tema.js`) e um pequeno script no `index.html` aplica o atributo antes da página aparecer, para não piscar o tema errado. Sem armazenamento (modo privado), o tema vale até recarregar. Não segue a pessoa entre aparelhos.
 
 ## Tokens de cor
 
 | Token | Claro | Escuro | Uso |
 |---|---|---|---|
-| `--marca` | `#ff3301` | igual | Cabeçalho, fundo do login |
-| `--marca-escura` | `#661100` | igual | Barra do timer |
-| `--destaque` | `#ffcd4d` | igual | Reservado (amarelo oficial); ainda sem uso |
-| `--sobre-marca` | `#121212` | igual | Texto sobre o laranja |
-| `--sobre-marca-hover` | `rgba(18,18,18,.12)` | igual | Hover dos botões de navegação no cabeçalho |
-| `--veu` | `rgba(18,18,18,.55)` | `rgba(0,0,0,.7)` | Fundo escurecido atrás das janelas |
+| `--marca` | `#ff3301` | igual | Logo, fundo do login |
+| `--marca-escura` | `#661100` | igual | Chip do timer na barra superior |
+| `--destaque` | `#ffcd4d` | igual | Ponto do timer (amarelo oficial) |
+| `--sobre-marca` | `#121212` | igual | Texto de botão claro sobre vinho e laranja |
+| `--ativo-fundo`, `--ativo-texto` | `#ffe9e3`, `#b82500` | `rgba(255,51,1,.2)`, `#ff8466` | Item ativo do menu lateral |
+| `--veu` | `rgba(18,18,18,.55)` | `rgba(0,0,0,.7)` | Fundo escurecido atrás das janelas e do menu no celular |
+| `--sombra-menu` | `0 0 40px rgba(0,0,0,.3)` | igual | Sombra do menu aberto no celular |
 | `--fundo` | `#f5f5f5` | `#0f0f0f` | Fundo da página e blocos internos |
 | `--cartao` | `#ffffff` | `#181818` | Cartões, campos, janelas |
 | `--tinta` | `#121212` | `#f2f2f2` | Texto principal e foco |
@@ -82,7 +83,9 @@ Oito cores (`--avatar-0` a `--avatar-7`), iguais nos dois temas, texto sempre br
 
 | Componente | Classes | Observações |
 |---|---|---|
-| Botão | `.botao` + `.primario`, `.escuro`, `.vermelho`, `.claro`, `.nav`, `.texto`, `.pequeno` | Um primário por área. `.claro` é branco fixo (usado sobre laranja e vinho). `.escuro` inverte conforme o tema. |
+| Menu lateral | `.menu`, `.menu-lista`, `.menu-item` (`.cliente`, `.projeto`, `.ativo`), `.menu-fim`, `.menu-usuario`, `.tema` | Em `src/menu.jsx`. Item ativo com `aria-current="page"`; cliente com `aria-expanded`. Até 900px vira gaveta (`.menu.aberto` e `.menu-veu`), aberta por `.menu-botao`: foco entra no menu, Tab não escapa e Esc fecha. |
+| Barra superior | `.barra-topo`, `.caminho`, `.timer-chip` | Caminho (cliente / código do projeto), timer rodando com "Parar e lançar" e "Reportar bug ou ideia". Fica fixa no topo. |
+| Botão | `.botao` + `.primario`, `.escuro`, `.vermelho`, `.claro`, `.texto`, `.pequeno` | Um primário por área. `.claro` é branco fixo (usado sobre laranja e vinho). `.escuro` inverte conforme o tema. |
 | Campo | `.campo` (rótulo + controle), `.entrada`, `.status-seletor` | Sempre com `label` e `htmlFor`. |
 | Cartão | `.cartao`, `.projeto-cartao`, `.cartao-quadro`, `.bloco`, `.comentario` | |
 | Lista | `.linha`, `.linha-titulo` | Linha clicável tem hover sublinhado no título. |
@@ -90,7 +93,7 @@ Oito cores (`--avatar-0` a `--avatar-7`), iguais nos dois temas, texto sempre br
 | Tarefa e etapa | `.etapa`, `.marca-etapa` (`feito`, `agora`, `depois`), `.nome-etapa` | |
 | Pessoas | `.avatar`, `.avatares`, `.pilula.pessoa` | |
 | Progresso | `.barra` | Tem `role="img"` e rótulo com a porcentagem. |
-| Timer | `.timer`, `.relogio` | Fundo vinho, texto branco. |
+| Timer | `.timer-chip`, `.relogio` | Chip vinho com texto branco na barra superior; o relógio usa algarismos tabulares. |
 | Aviso | `.aviso`, `.aviso.erro` | Erro usa `role="alert"`; sucesso `role="status"` e some em 4 s. |
 | Janela | `.veu`, `.janela` | `role="dialog"` e `aria-modal`. |
 | Estados | texto "Carregando…", cartão de erro com "Tentar de novo", frases de vazio | Ainda sem esqueleto de carregamento nem ação nos vazios; melhoria prevista. |
@@ -123,6 +126,7 @@ Cálculo WCAG sobre os valores das variáveis:
 | `--sobre-marca` sobre `--marca` | 5,11 | 5,11 |
 | `--borda-forte` sobre `--cartao` (3:1) | 3,69 | 5,28 |
 | `--acento` sobre `--trilho` (barra, 3:1) | 3,65 | 3,45 |
+| `--ativo-texto` sobre `--ativo-fundo` (menu) | 5,46 | 6,05 |
 | Status (texto sobre fundo), pior dos oito | 6,15 | 7,71 |
 | Texto branco sobre os avatares, pior dos oito | 6,41 | 6,41 |
 

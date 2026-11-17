@@ -7,7 +7,9 @@ Aplicação de página única (SPA) em Vite + React 18, em JavaScript. Não há 
 | Camada | Arquivos | Papel |
 |---|---|---|
 | Entrada | `index.html`, `src/main.jsx` | Monta `App` com `React.StrictMode`; carrega fontes do Google Fonts. |
-| Interface | `src/App.jsx` | Login, navegação, timer global, avisos, barreira de erro, janela de relato. |
+| Interface | `src/App.jsx` | Login, estrutura da tela, timer global, avisos, barreira de erro, janela de relato. |
+| | `src/menu.jsx` | Menu lateral (navegação, clientes e projetos, usuário, tema, Sair) e barra superior (caminho, timer, Reportar). |
+| | `src/tema.js` | Lê e grava a escolha claro/escuro no navegador e aplica `data-tema` no `<html>`. |
 | | `src/telas.jsx` | Meu dia, Projetos, Projeto, Equipe e piloto. |
 | | `src/Painel.jsx` | Detalhe da entrega. |
 | | `src/pecas.jsx` | Peças reutilizáveis (avatar, status, barra, campo salvo). |
@@ -27,7 +29,7 @@ Consequência conhecida: o volume lido cresce com o total de dados, não com o q
 
 ## Navegação
 
-Sem roteador. A tela ativa (`dia`, `projetos`, `projeto`, `equipe`) e a entrega aberta ficam em estado no componente `Sistema`; a URL não muda.
+Sem roteador. A tela ativa (`dia`, `projetos`, `projeto`, `equipe`) e a entrega aberta ficam em estado no componente `Sistema`; a URL não muda. Os atalhos do menu lateral (Meu dia, Projetos, Equipe e piloto e a árvore Cliente > Projeto) chamam `app.ir`. Em tela estreita o menu é uma gaveta controlada pelo estado `menuAberto` de `Sistema`.
 
 ## Autenticação e acesso
 

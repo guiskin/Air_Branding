@@ -1,6 +1,6 @@
 # 003: Air Creative Workspace (menu lateral, tema claro/escuro e painéis do projeto)
 
-- **Status:** aprovada pelo usuário no chat em 2026-11-17. Fase 1 implementada (aguarda revisão e merge); fases 2 a 5 não iniciadas.
+- **Status:** aprovada pelo usuário no chat em 2026-11-17. Fase 1 publicada na `main`; fase 2 implementada (aguarda revisão e merge); fases 3 a 5 não iniciadas.
 - **Branch:** uma por fase: `feat/ux-1-fundacao`, `feat/ux-2-menu-lateral`, `feat/ux-3-projeto`, `feat/ux-4-coluna-lateral`, `feat/ux-5-foto` (fase 5 só se aprovada)
 
 ## Objetivo
@@ -138,6 +138,15 @@ Valem para todas as fases, depois os específicos de cada uma.
 - [ ] Foto aparece no menu e na equipe; sem foto, aparecem as iniciais.
 
 ## Resumo do que mudou
+
+### Fase 2 (branch `feat/ux-2-menu-lateral`)
+
+- Criados: `src/menu.jsx` (menu lateral e barra superior), `src/tema.js` (tema no navegador).
+- Alterados: `src/App.jsx` (cabeçalho e faixa do timer saem; entram `Menu`, `BarraTopo`, estado do menu e do tema), `src/estilos.css` (estrutura em menu lateral + barra superior, gaveta no celular, tokens `--ativo-*` e `--sombra-menu`; saem `.topo`, `.nav`, `.botao.nav` e `.timer`), `index.html` (script que aplica o tema salvo antes de pintar), `docs/design-system.md`, `docs/arquitetura.md`.
+- Removidos: o cabeçalho laranja e a faixa de timer (substituídos pela barra superior e pelo menu); nenhuma funcionalidade. Meu dia, Projetos, Equipe e piloto, Reportar, Sair e Parar e lançar continuam.
+- Mudanças visíveis: menu lateral fixo com clientes e projetos; barra superior branca com caminho, timer em chip vinho e Reportar; seletor Claro/Escuro sob o nome; o laranja deixa de ser o cabeçalho e fica no logo, no item ativo e nos botões primários.
+- Verificado (dados simulados, perfis admin e membro): build; menu com Meu dia, Projetos e Equipe e piloto só para gestor; árvore expande e abre o projeto, com item ativo e caminho corretos; tema troca, persiste ao recarregar e é aplicado antes da página; timer aparece e o botão Sair responde; contraste de texto por script em Meu dia, Projetos, Projeto e Equipe, nos dois temas, em 1024 px e em 375 px, sem falhas; 375 px sem rolagem horizontal; gaveta: escondida, abre, Tab e Shift+Tab ficam presos, Esc e o fundo fecham, o foco volta ao botão do menu.
+- Não verificado: dados reais e perfis coordenação e freelancer; leitor de tela; o aspecto final do nome do projeto em duas linhas no menu (ajuste feito depois do último teste visual); Parar e lançar gravando horas (o mock não grava).
 
 ### Fase 1 (branch `feat/ux-1-fundacao`)
 

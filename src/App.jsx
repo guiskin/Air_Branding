@@ -4,6 +4,8 @@ import * as D from './dados'
 import { relogio } from './pecas'
 import { MeuDia, Projetos, Projeto, Equipe } from './telas'
 import Painel from './Painel'
+import { Menu, BarraTopo } from './menu'
+import { lerTema, aplicarTema } from './tema'
 
 const versao = typeof __VERSAO__ === 'string' ? __VERSAO__ : 'local'
 
@@ -215,8 +217,10 @@ function Relato({ contexto, aoFechar, aoEnviar }) {
   )
 }
 
-function Sistema({ sessao }) {
+function Sistema({ sessao, tema, setTema }) {
   const [dados, setDados] = useState(null)
+  const [menuAberto, setMenuAberto] = useState(false)
+  const botaoMenu = useRef(null)
   const [falha, setFalha] = useState('')
   const [tela, setTela] = useState('dia')
   const [projetoId, setProjetoId] = useState(null)
@@ -281,6 +285,18 @@ function Sistema({ sessao }) {
     const t = setTimeout(() => setAviso(null), 4000)
     return () => clearTimeout(t)
   }, [aviso])
+
+  const fecharMenu = useCallback((voltarFoco = false) => {
+    setMenuAberto(false)
+    if (voltarFoco && botaoMenu.current) botaoMenu.current.focus()
+  }, [])
+
+  useEffect(() => {
+    const larga = window.matchMedia('(min-width: 901px)')
+    const aoMudar = () => larga.matches && setMenuAberto(false)
+    larga.addEventListener('change', aoMudar)
+    return () => larga.removeEventListener('change', aoMudar)
+  }, [])
 
   const m = useMemo(() => (dados ? D.montar(dados, euId) : null), [dados, euId])
   const temTimer = Boolean(m && m.timer)
@@ -353,6 +369,7 @@ function Sistema({ sessao }) {
     registrar(`Abrir tela ${destino}`)
     setTela(destino)
     if (destino === 'projeto') setProjetoId(id)
+    if (menuAberto) fecharMenu(true)
   }
   const abrir = (id) => {
     if (id) registrar('Abrir entrega')
@@ -377,77 +394,55 @@ function Sistema({ sessao }) {
     janela: `${window.innerWidth}x${window.innerHeight}`,
     versao,
   }
-  const navs = [
-    ['dia', 'Meu dia'],
-    ['projetos', 'Projetos'],
-  ]
-  if (gestor) navs.push(['equipe', 'Equipe e piloto'])
+  const clienteAtual = projetoAtual ? m.clientePorId[projetoAtual.cliente_id] : null
+  const nomesDeTela = { dia: 'Meu dia', projetos: 'Projetos', equipe: 'Equipe e piloto' }
+  const caminho = tela === 'projeto' ? [clienteAtual ? clienteAtual.nome : 'Projetos', projetoAtual ? projetoAtual.codigo : 'Projeto'] : [nomesDeTela[tela]]
+  const timer = m.timer && {
+    titulo: timerEntrega ? timerEntrega.titulo : `Hora sem tarefa em ${timerProjeto ? timerProjeto.nome : 'projeto'}`,
+    tipo: D.tipoPorId(m.timer.tipo).nome,
+    relogio: relogio(m.timer.inicio),
+  }
 
   return (
     <>
-      <header className="topo">
-        <div className="topo-dentro">
-          <div>
-            <div className="marca"><img className="logo" src="/logo.jpg" alt="Air" />Gestor de Projetos</div>
-            <div className="pequeno suave">
-              Piloto de testes, {eu.nome}
+      <div className="app">
+        <Menu app={app} tela={tela} projetoId={projetoId} tema={tema} setTema={setTema} aberto={menuAberto} fechar={fecharMenu} sair={() => supabase.auth.signOut()} />
+        <div className="area">
+          <BarraTopo
+            caminho={caminho}
+            timer={timer}
+            aoParar={() => agir('Parar timer', () => D.pararTimer(m.timer))}
+            aoReportar={() => setRelatando(true)}
+            aoAbrirMenu={() => setMenuAberto(true)}
+            menuAberto={menuAberto}
+            botaoMenu={botaoMenu}
+          />
+          <main className="conteudo">
+            {falha && (
+              <p role="alert" className="cartao aviso-conexao pequeno forte perigo">
+                Sem conexão com o servidor no momento. Os dados na tela podem estar desatualizados.
+              </p>
+            )}
+            <div className="colunas">
+              <div className="principal">
+                <Barreira key={tela + (projetoId || '')} aoFalhar={(t) => (ultimoErro.current = t)} aoRelatar={() => setRelatando(true)}>
+                  {tela === 'dia' && <MeuDia app={app} />}
+                  {tela === 'projetos' && <Projetos app={app} />}
+                  {tela === 'projeto' && <Projeto app={app} projetoId={projetoId} />}
+                  {tela === 'equipe' && gestor && <Equipe app={app} />}
+                </Barreira>
+              </div>
+              {entregaAberta && (
+                <div className="lateral">
+                  <Barreira key={entregaAberta.id} aoFalhar={(t) => (ultimoErro.current = t)} aoRelatar={() => setRelatando(true)}>
+                    <Painel app={app} entrega={entregaAberta} />
+                  </Barreira>
+                </div>
+              )}
             </div>
-          </div>
-          <nav className="nav" aria-label="Navegação principal">
-            {navs.map(([id, nome]) => (
-              <button key={id} className={`botao nav ${tela === id || (id === 'projetos' && tela === 'projeto') ? 'ativo' : ''}`} onClick={() => ir(id)}>
-                {nome}
-              </button>
-            ))}
-            <button className="botao primario" onClick={() => setRelatando(true)}>
-              Reportar bug ou ideia
-            </button>
-            <button className="botao" onClick={() => supabase.auth.signOut()}>
-              Sair
-            </button>
-          </nav>
+          </main>
         </div>
-      </header>
-      {m.timer && (
-        <div className="timer">
-          <div className="timer-dentro">
-            <div>
-              <div className="forte">Timer rodando: {timerEntrega ? timerEntrega.titulo : `hora sem tarefa em ${timerProjeto ? timerProjeto.nome : 'projeto'}`}</div>
-              <div className="pequeno suave">Tipo de hora: {D.tipoPorId(m.timer.tipo).nome}</div>
-            </div>
-            <div className="fila">
-              <span className="relogio">{relogio(m.timer.inicio)}</span>
-              <button className="botao claro" onClick={() => agir('Parar timer', () => D.pararTimer(m.timer))}>
-                Parar e lançar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      <main className="conteudo">
-        {falha && (
-          <p role="alert" className="cartao aviso-conexao pequeno forte perigo">
-            Sem conexão com o servidor no momento. Os dados na tela podem estar desatualizados.
-          </p>
-        )}
-        <div className="colunas">
-          <div className="principal">
-            <Barreira key={tela + (projetoId || '')} aoFalhar={(t) => (ultimoErro.current = t)} aoRelatar={() => setRelatando(true)}>
-              {tela === 'dia' && <MeuDia app={app} />}
-              {tela === 'projetos' && <Projetos app={app} />}
-              {tela === 'projeto' && <Projeto app={app} projetoId={projetoId} />}
-              {tela === 'equipe' && gestor && <Equipe app={app} />}
-            </Barreira>
-          </div>
-          {entregaAberta && (
-            <div className="lateral">
-              <Barreira key={entregaAberta.id} aoFalhar={(t) => (ultimoErro.current = t)} aoRelatar={() => setRelatando(true)}>
-                <Painel app={app} entrega={entregaAberta} />
-              </Barreira>
-            </div>
-          )}
-        </div>
-      </main>
+      </div>
       {aviso && (
         <div className={`aviso ${aviso.erro ? 'erro' : ''}`} role={aviso.erro ? 'alert' : 'status'}>
           <div>
@@ -476,6 +471,10 @@ function Sistema({ sessao }) {
 
 export default function App() {
   const [sessao, setSessao] = useState(undefined)
+  const [tema, setTema] = useState(lerTema)
+  useEffect(() => {
+    aplicarTema(tema)
+  }, [tema])
   useEffect(() => {
     if (!configurado) return undefined
     supabase.auth.getSession().then(({ data }) => setSessao(data.session))
@@ -500,5 +499,5 @@ export default function App() {
     )
   }
   if (!sessao) return <Login />
-  return <Sistema key={sessao.user.id} sessao={sessao} />
+  return <Sistema key={sessao.user.id} sessao={sessao} tema={tema} setTema={setTema} />
 }
