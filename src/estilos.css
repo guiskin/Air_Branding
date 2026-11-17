@@ -249,6 +249,7 @@ select.entrada { width: auto; max-width: 100%; }
 .pilha { display: flex; flex-direction: column; gap: 12px; }
 .pilha.minima { gap: 4px; }
 .pilha.curta { gap: 6px; }
+.passos-importacao-google { margin: 0; padding-inline-start: 1.5em; }
 .pilha.media { gap: 8px; }
 .pilha.solta { gap: 16px; }
 .pilha.larga { gap: 20px; }

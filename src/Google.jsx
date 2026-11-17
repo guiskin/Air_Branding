@@ -107,7 +107,7 @@ export default function Google({ app }) {
       {!googleConfigurado ? <p className="cartao">A integração Google ainda precisa ser habilitada neste ambiente.</p> : (
         <section className="cartao pilha">
           <h2>Importar entregas</h2>
-          <p className="suave">Selecione um projeto e uma agenda ou lista do Google. Itens com <strong>[Air]</strong> no início do título entram como novas entregas. A sincronização roda a cada minuto enquanto esta tela estiver aberta e a autorização for válida.</p>
+          {!sessao && <p>Conecte sua conta Google para importar eventos do Google Agenda ou tarefas do Google Tasks como entregas em um projeto.</p>}
           {!sessao ? (
             <div><button type="button" className="botao primario" disabled={conectando || (!oauth && !erro)} onClick={conectar}>{oauth ? 'Conectar conta Google' : erro ? 'Tentar carregar Google' : 'Carregando autorização…'}</button></div>
           ) : (
@@ -125,7 +125,19 @@ export default function Google({ app }) {
                   {sessao.colecoes[origem].map(({ id, nome }) => <option value={id} key={id}>{nome}</option>)}
                 </select></label>
               </div>
-              <p className="pequeno suave">{origem === 'agenda' ? 'São consultados os próximos 90 dias.' : 'São consultadas as tarefas em aberto da lista.'}</p>
+              <section className="pilha curta" aria-labelledby="como-importar-google">
+                <h3 id="como-importar-google">Como importar</h3>
+                <ol className="pilha curta passos-importacao-google">
+                  {origem === 'agenda' ? (
+                    <li>No Google Agenda, crie um evento para amanhã com o título <strong>[Air] Teste de importação</strong>. Antes de salvar, confira o nome no campo <strong>Calendário</strong>.</li>
+                  ) : (
+                    <li>No Google Tasks, crie uma tarefa com o título <strong>[Air] Teste de importação</strong>. Confira em qual lista ela está e deixe a tarefa em aberto.</li>
+                  )}
+                  <li>Aqui, escolha o <strong>Projeto de destino</strong> e selecione {origem === 'agenda' ? <>o mesmo calendário no campo <strong>Agenda</strong></> : <>a mesma lista no campo <strong>Lista de tarefas</strong></>}.</li>
+                  <li>Clique em <strong>Iniciar sincronização</strong>. Quando o contador indicar que a entrega foi importada, procure por <strong>Teste de importação</strong> no projeto escolhido.</li>
+                </ol>
+                <p className="pequeno suave">{origem === 'agenda' ? 'Entram eventos dos próximos 90 dias com [Air] no início do título.' : 'Entram tarefas em aberto com [Air] no início do título.'} Novos itens são consultados a cada minuto enquanto esta tela estiver aberta e a autorização for válida.</p>
+              </section>
               <div className="fila">
                 {sincronizando ? (
                   <button className="botao" onClick={() => setSincronizando(false)}>Parar sincronização</button>
