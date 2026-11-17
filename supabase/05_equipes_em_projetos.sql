@@ -3,6 +3,20 @@
 -- permanecem intactos. Projetos existentes começam sem equipe cadastrada.
 -- Reversão operacional: retire a versão do app que usa as funções e revogue
 -- EXECUTE nas três RPCs. As tabelas podem ser mantidas para preservar o cadastro.
+-- Cria 4 tabelas (equipes, equipe_membros, projeto_equipes, projeto_equipe_membros) com RLS
+-- só de leitura para membros e 3 funções (salvar_equipe, aplicar_equipe_projeto,
+-- criar_projeto_com_equipe) executáveis só por gestor, que são o único caminho de escrita.
+-- A equipe aplicada a um projeto é uma cópia: editar a equipe depois não altera projetos
+-- que já a usam; é preciso reaplicá-la.
+-- Trava inicial: aborta se faltar a 03 ou o Realtime, ou se as tabelas já existirem.
+-- Reversão completa (apaga o cadastro de equipes; exige aprovação explícita):
+--   alter publication supabase_realtime drop table public.equipes, public.equipe_membros,
+--     public.projeto_equipes, public.projeto_equipe_membros;
+--   drop function public.salvar_equipe(uuid, text, uuid[]);
+--   drop function public.aplicar_equipe_projeto(uuid, uuid);
+--   drop function public.criar_projeto_com_equipe(uuid, text, text, text, numeric, uuid);
+--   drop table public.projeto_equipe_membros, public.projeto_equipes,
+--     public.equipe_membros, public.equipes;
 
 begin;
 
