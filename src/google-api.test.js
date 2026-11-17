@@ -1,9 +1,34 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { itemGoogle, listarItensGoogle } from './google-api'
 
-afterEach(() => vi.unstubAllGlobals())
+afterEach(() => {
+  vi.unstubAllGlobals()
+  vi.unstubAllEnvs()
+})
 
 describe('importação do Google', () => {
+  it('usa o cliente público somente na origem publicada e permite sobrescrever por ambiente', async () => {
+    const preparar = async (origem, configuracao) => {
+      vi.stubGlobal('location', { origin: origem })
+      vi.stubEnv('VITE_GOOGLE_CLIENT_ID', configuracao)
+      vi.resetModules()
+      return import('./google-api')
+    }
+    const producao = await preparar('https://air-branding.pages.dev', '')
+    expect(producao.googleConfigurado).toBe(true)
+    const local = await preparar('http://localhost:5173', '')
+    expect(local.googleConfigurado).toBe(false)
+    const sobrescrito = await preparar('https://air-branding.pages.dev', 'cliente-teste')
+    const oauth = {
+      hasGrantedAllScopes: () => true,
+      initTokenClient: vi.fn(({ callback }) => ({
+        requestAccessToken: () => callback({ access_token: 'token-fixture', expires_in: 60 }),
+      })),
+    }
+    await sobrescrito.conectarGoogle(oauth)
+    expect(oauth.initTokenClient).toHaveBeenCalledWith(expect.objectContaining({ client_id: 'cliente-teste' }))
+  })
+
   it('preserva a data local do compromisso e descarta eventos privados e sem marcação', () => {
     const evento = { id: '1', summary: '[Air] Apresentação', start: { dateTime: '2026-11-17T23:00:00-03:00' } }
     expect(itemGoogle('agenda', evento)).toEqual({ id: '1', titulo: 'Apresentação', prazo: '2026-11-17' })

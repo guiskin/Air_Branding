@@ -40,7 +40,7 @@ Fica para depois: funil comercial, carga da equipe por semana, Gantt interativo,
 
 ### Google Agenda e Google Tasks
 
-No Google Cloud, habilite a Google Calendar API e a Google Tasks API. Configure a tela de consentimento OAuth com o público apropriado e crie um ID de cliente OAuth para **Aplicativo da Web**. Cadastre a origem publicada e a origem de teste em **Origens JavaScript autorizadas**, como `https://air-branding.pages.dev` e `http://localhost:5173`. Defina `VITE_GOOGLE_CLIENT_ID` com o ID público e refaça o build. A integração usa autorização somente leitura no navegador. [Google Identity Services](https://developers.google.com/identity/oauth2/web/guides/use-token-model)
+No Google Cloud, habilite a Google Calendar API e a Google Tasks API. Configure a tela de consentimento OAuth com o público apropriado e crie um ID de cliente OAuth para **Aplicativo da Web**. Cadastre as origens que o cliente deve atender em **Origens JavaScript autorizadas**, como `https://air-branding.pages.dev` e `http://localhost:5173`. A origem pública usa o ID público definido em `src/google-api.js`. Para sobrescrever esse ID ou habilitar outro ambiente, defina `VITE_GOOGLE_CLIENT_ID` e refaça o build. A integração usa autorização somente leitura no navegador. [Google Identity Services](https://developers.google.com/identity/oauth2/web/guides/use-token-model)
 
 Em **Google Agenda e Tasks**, conecte a conta, escolha o projeto, a origem e a agenda ou lista. Adicione `[Air]` ao começo dos títulos que devem entrar no Air Branding. Use a migração `11` no Supabase.
 

@@ -1,4 +1,10 @@
-export const googleConfigurado = Boolean(import.meta.env.VITE_GOOGLE_CLIENT_ID)
+const idGoogleProducao = '776294575075-kcmlghs9n12euo3o0555iac25iht6mjb.apps.googleusercontent.com'
+const origemProducao = 'https://air-branding.pages.dev'
+const idGoogle = import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim() || (
+  globalThis.location?.origin === origemProducao ? idGoogleProducao : ''
+)
+
+export const googleConfigurado = Boolean(idGoogle)
 
 const escopos = [
   'https://www.googleapis.com/auth/calendar.calendarlist.readonly',
@@ -34,7 +40,7 @@ export function prepararGoogle() {
 export function conectarGoogle(oauth) {
   return new Promise((resolve, reject) => {
     oauth.initTokenClient({
-      client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+      client_id: idGoogle,
       scope: escopos.join(' '),
       include_granted_scopes: false,
       callback: (resposta) => {
