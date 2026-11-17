@@ -66,6 +66,8 @@ Os ids e nomes dos status vivem em `src/dados.js` (e no `check` do SQL); as core
 
 Oito cores (`--avatar-0` a `--avatar-7`), iguais nos dois temas, texto sempre branco. `corPessoa(id)` em `dados.js` devolve o índice; o componente aplica `.avatar.cor-N`.
 
+O avatar do perfil tem 60 px no menu e em Configurações. O avatar padrão tem 30 px e o das pílulas de pessoa tem 22 px.
+
 ## Tipografia
 
 - Títulos: Barlow Condensed 800, caixa alta, `h1` 40px (32px no celular), `h2` 26px, `h2.titulo-grupo` 20px.

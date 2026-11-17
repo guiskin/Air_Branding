@@ -293,6 +293,9 @@ h2.titulo-grupo { font-size: calc(20px - var(--ajuste-fonte)); }
   display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px;
   border-radius: 50%; color: var(--branco); font-size: calc(12px - var(--ajuste-fonte)); font-weight: 700; flex: 0 0 auto;
 }
+.menu-usuario .avatar, .configuracoes .avatar {
+  width: 60px; height: 60px; font-size: calc(24px - var(--ajuste-fonte));
+}
 .avatar.cor-0 { background: var(--avatar-0); }
 .avatar.cor-1 { background: var(--avatar-1); }
 .avatar.cor-2 { background: var(--avatar-2); }
