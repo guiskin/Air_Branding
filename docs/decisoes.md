@@ -2,6 +2,19 @@
 
 Uma entrada por decisão: data, decisão, motivo. Mais recente no topo.
 
+## 2026-11-16: decisões da tarefa 001 (segurança de perfis, convites e desativação)
+
+Tomadas pelo usuário. Detalhes e critérios de aceite em `tasks/001-seguranca-perfis-e-convites.md`.
+
+- **D1:** coordenação pode promover membro a coordenação e rebaixar ou desativar outra coordenação. Só administrador altera administrador.
+- **D2:** a confirmação de e-mail fica **ligada** (README corrigido). Antes de convidar a equipe, testar se um e-mail externo recebe o link. Código de convite (scripts 04 e 05) adiado; só se o e-mail não chegar ou ao entrar cliente real.
+- **D3:** aprovado trocar as políticas `pessoas_editar` e `convites_gestor`, as funções `eh_membro` e `eh_gestor`, e os privilégios de `pessoas` (só `update` por coluna).
+- **D4:** trocar `on delete cascade` por `restrict` em `horas`, `comentarios` e `relatos`, para apagar um usuário não destruir o histórico.
+- **D5:** ao desativar, manter a pessoa nas entregas e no histórico. A tela Equipe avisa quantas entregas abertas ela tem, e entrega sem nenhum responsável ativo aparece em "Precisa de atenção".
+- **D6:** as políticas de edição e exclusão de horas passam a exigir pessoa ativa.
+- **D7:** tela para promover e rebaixar perfil entra agora, junto de Desativar e Reativar na tela Equipe.
+- **D8:** retirar de `anon` e `authenticated` os privilégios que o app não usa (`truncate`, `references`, `trigger`) e ajustar o padrão para tabelas futuras.
+
 ## 2026-11-16: organização do projeto para desenvolvimento com Claude Code
 
 - `CLAUDE.md` enxuto, regras por área em `.claude/rules/`, agentes `revisor` e `analista-banco`, skills de planejamento, migração e fechamento. Tarefas em `tasks/`.
@@ -18,7 +31,7 @@ Uma entrada por decisão: data, decisão, motivo. Mais recente no topo.
 Plano na tarefa `tasks/001-seguranca-perfis-e-convites.md` (S1, S2, S3 e B1). S4 não tem tarefa ainda. S5 e B2 entram no registro `supabase/APLICADO.md` (R4). B3 e B4 estão no backlog.
 
 - **S1:** coordenação consegue se promover a admin ou convidar admins pela API (políticas `pessoas_editar` e `convites_gestor`).
-- **S2:** se a confirmação de e-mail estiver desligada, o e-mail do convite não é verificado e alguém pode criar a conta de um convidado antes dele. Em 2026-11-16 a confirmação está **ligada** (o README manda desligar), o que reduz o risco; resta o risco de o e-mail de confirmação não chegar a convidados externos (SMTP embutido).
+- **S2:** se a confirmação de e-mail estiver desligada, o e-mail do convite não é verificado e alguém pode criar a conta de um convidado antes dele. Em 2026-11-16 a confirmação está **ligada** (README corrigido por D2), o que reduz o risco; resta o risco de o e-mail de confirmação não chegar a convidados externos (SMTP embutido).
 - **S3:** a mensagem de erro do cadastro revela se um e-mail está convidado.
 - **S4:** qualquer membro edita qualquer entrega e etapa, inclusive `projeto_id`.
 - **S5:** confirmado em 2026-11-16: o plano gratuito do Supabase não faz backup.
@@ -31,5 +44,4 @@ Plano na tarefa `tasks/001-seguranca-perfis-e-convites.md` (S1, S2, S3 e B1). S4
 ## Pendente de decisão
 
 - **S4:** qualquer membro editar qualquer entrega e etapa é intencional?
-- **Tarefa 001, D1 a D8** (detalhes na tarefa): D1 coordenação promove ou rebaixa coordenação? D2 manter a confirmação de e-mail ligada, usar código de convite ou ambos (e corrigir o README)? D3 aprovar mudar políticas e funções existentes; D4 `restrict` no lugar de `cascade`; D5 regra de desativação; D6 políticas de horas; D7 tela de perfil; D8 retirar privilégios não usados.
 - O projeto deve sair do OneDrive? Worktrees e `node_modules` ali geram sincronização pesada.

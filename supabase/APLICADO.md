@@ -6,8 +6,9 @@ Registro do que já foi executado no SQL Editor do Supabase. O repositório não
 |---|---|---|---|
 | `01_estrutura.sql` | Estrutura, RLS, gatilho de convite, realtime | 2026-11-16 (noite, horário de Brasília) | Informado pelo usuário. Políticas de `pessoas` e `convites` conferidas: batem com o script. |
 | `02_convites_e_exemplos.sql` | Convites dos administradores e dados de exemplo | 2026-11-16 (noite, horário de Brasília) | Convites conferidos: só existe o convite do administrador real, sem e-mails fictícios. |
+| `03_perfil_admin_e_desativar_pessoa.sql` | Perfil admin protegido, `pessoas.ativo`, `restrict` no histórico, privilégios mínimos | **Não aplicado** | Pronto; seguir `tasks/001-roteiro-de-aplicacao.md`. |
 
-Nenhum outro script foi executado. Próximo número livre: `03`.
+Nenhum outro script foi executado. Próximo número livre: `04`.
 
 ## Estado do banco na conferência de 2026-11-16
 
@@ -20,7 +21,7 @@ Nenhum outro script foi executado. Próximo número livre: `03`.
 
 | Item | Onde | Estado em 2026-11-16 |
 |---|---|---|
-| Confirmação de e-mail ("Confirm email") | Authentication, provedor Email | **Ligada** (o README manda desligar: divergência, ver tarefa `001`, D2) |
+| Confirmação de e-mail ("Confirm email") | Authentication, provedor Email | **Ligada** (decisão D2: fica ligada; README já corrigido. Falta testar se um e-mail externo recebe o link) |
 | Permitir novos cadastros ("Allow new users to sign up") | Authentication | Ligado |
 | Provedor de e-mail (embutido ou SMTP próprio) | Authentication, SMTP Settings | Não verificado; no plano gratuito, sem SMTP próprio configurado, é o embutido, com limite baixo de envios (conferir os limites atuais na documentação) |
 | Backup do banco | Project Settings, Database | **Não há** (plano gratuito) |
